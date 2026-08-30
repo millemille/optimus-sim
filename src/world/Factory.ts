@@ -10,7 +10,7 @@ export class Factory {
   readonly crateMarker: THREE.Group;
   readonly dropZone: THREE.Group;
   readonly crateHome = new THREE.Vector3(-2.15, 1.03, 1.35);
-  readonly dropPos = new THREE.Vector3(3.6, 0.12, -3.15);
+  readonly dropPos = new THREE.Vector3(2.35, 0.12, 4.15);
 
   constructor() {
     this.group.name = "factory";
@@ -238,12 +238,12 @@ export class Factory {
     this.group.add(drum);
     this.obstacle(6.4, -1.2, 0.9, 0.9);
 
-    const stripe = new THREE.Mesh(
-      new THREE.BoxGeometry(0.36, 2.4, 0.36),
-      new THREE.MeshStandardMaterial({ color: 0xc4a032, roughness: 0.5 }),
+    const post = new THREE.Mesh(
+      new THREE.BoxGeometry(0.32, 2.2, 0.32),
+      new THREE.MeshStandardMaterial({ color: 0x3a3a40, roughness: 0.55, metalness: 0.25 }),
     );
-    stripe.position.set(0.2, 1.2, 6.55);
-    this.group.add(stripe);
+    post.position.set(-3.6, 1.1, 6.55);
+    this.group.add(post);
   }
 
   private makeCrateMarker(): THREE.Group {
@@ -321,12 +321,12 @@ export class Factory {
     const g = new THREE.Group();
     g.name = "drop-zone";
     const pad = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.15, 1.15),
+      new THREE.PlaneGeometry(1.7, 1.7),
       new THREE.MeshStandardMaterial({
-        color: 0xd4b44a,
-        emissive: 0x6a5410,
-        emissiveIntensity: 0.25,
-        roughness: 0.7,
+        color: 0xf0c94a,
+        emissive: 0xc9a020,
+        emissiveIntensity: 0.7,
+        roughness: 0.55,
       }),
     );
     pad.rotation.x = -Math.PI / 2;
@@ -334,29 +334,39 @@ export class Factory {
     g.add(pad);
 
     const inner = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.86, 0.86),
-      new THREE.MeshStandardMaterial({ color: 0x3a3a32, roughness: 0.9 }),
+      new THREE.PlaneGeometry(1.15, 1.15),
+      new THREE.MeshStandardMaterial({
+        color: 0x2e2c22,
+        roughness: 0.88,
+        emissive: 0x3a3008,
+        emissiveIntensity: 0.15,
+      }),
     );
     inner.rotation.x = -Math.PI / 2;
     inner.position.y = 0.014;
     g.add(inner);
 
+    const postMat = new THREE.MeshStandardMaterial({
+      color: 0xf2d056,
+      emissive: 0xaa8808,
+      emissiveIntensity: 0.55,
+      roughness: 0.4,
+    });
     for (const [sx, sz] of [
       [-1, -1],
       [1, -1],
       [-1, 1],
       [1, 1],
     ]) {
-      const corner = new THREE.Mesh(
-        new THREE.BoxGeometry(0.18, 0.02, 0.04),
-        new THREE.MeshStandardMaterial({ color: 0xf0d56a, emissive: 0x887010, emissiveIntensity: 0.3 }),
-      );
-      corner.position.set(sx * 0.46, 0.02, sz * 0.46);
-      g.add(corner);
-      const cornerB = corner.clone();
-      cornerB.rotation.y = Math.PI / 2;
-      g.add(cornerB);
+      const stake = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.62, 0.07), postMat);
+      stake.position.set(sx * 0.78, 0.31, sz * 0.78);
+      stake.castShadow = true;
+      g.add(stake);
     }
+
+    const lamp = new THREE.PointLight(0xffe08a, 16, 7, 2);
+    lamp.position.set(0, 1.6, 0);
+    g.add(lamp);
     return g;
   }
 

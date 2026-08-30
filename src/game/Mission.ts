@@ -3,7 +3,7 @@ import { Factory } from "../world/Factory.ts";
 import { Player } from "./Player.ts";
 
 const PICK_RANGE = 1.35;
-const DROP_RANGE = 1.45;
+const DROP_RANGE = 2.2;
 
 export type MissionPhase = "seek" | "carry" | "done";
 
@@ -26,14 +26,14 @@ export class Mission {
   }
 
   status(): string {
-    if (this.phase === "seek") return "Crate is on the left workbench.";
-    if (this.phase === "carry") return "Carrying the crate. Yellow bay is across the floor.";
-    return "Crate is on the bay mark. Workshop is yours.";
+    if (this.phase === "seek") return "Orange crate is on a workbench.";
+    if (this.phase === "carry") return "Carrying the crate. Walk onto the glowing yellow floor pad.";
+    return "Crate is on the yellow pad. Workshop is yours.";
   }
 
   missionText(): string {
-    if (this.phase === "done") return "Bay marked. Walk around if you want.";
-    return "Pick up the parts crate and set it on the yellow bay mark.";
+    if (this.phase === "done") return "Pad is loaded. Walk around if you want.";
+    return "Pick up the orange crate and set it on the glowing yellow floor pad.";
   }
 
   tryUse(): boolean {

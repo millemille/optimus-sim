@@ -1,6 +1,6 @@
 # Optimus Sim
 
-Fan-made browser sim. You walk a white-panel Optimus-style humanoid around a small workshop and move one crate onto a painted bay mark.
+Fan-made browser sim. You walk a white-panel Optimus-style humanoid around a small workshop and move one crate onto a glowing yellow floor pad.
 
 This is not a Tesla product. No official CAD, no Tesla wordmark on the robot. The body is built from three.js meshes so it reads like the Gen 2 showroom bot: matte white shells, black visor, dark joints, five-finger hands.
 
@@ -38,7 +38,7 @@ WASD is relative to the camera, not the robot's current facing.
 1. Spawn in the workshop as the robot.
 2. Walk to the brown parts crate on the left workbench.
 3. Press E (or click) when the prompt appears.
-4. Carry it to the yellow bay mark and place it.
+4. Carry it to the glowing yellow floor pad and place it.
 5. After that you can keep walking.
 
 No physics engine. Pickup is kinematic: the crate parents to a carry anchor on the torso, then snaps onto the bay.
