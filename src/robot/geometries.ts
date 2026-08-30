@@ -106,41 +106,51 @@ function smax(a: number, b: number, k: number): number {
   return Math.max(a, b) + h * h * k * 0.25;
 }
 
-function ellip(
+function ellip2(x: number, y: number, cx: number, cy: number, rx: number, ry: number): number {
+  return Math.hypot((x - cx) / rx, (y - cy) / ry) - 1;
+}
+
+function capsule2(
   x: number,
   y: number,
-  z: number,
-  cx: number,
-  cy: number,
-  cz: number,
-  rx: number,
-  ry: number,
-  rz: number,
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  r: number,
 ): number {
-  return Math.hypot((x - cx) / rx, (y - cy) / ry, (z - cz) / rz) - 1;
+  const dx = bx - ax;
+  const dy = by - ay;
+  const l2 = dx * dx + dy * dy || 1;
+  const t = Math.min(1, Math.max(0, ((x - ax) * dx + (y - ay) * dy) / l2));
+  return Math.hypot(x - ax - dx * t, y - ay - dy * t) - r;
 }
 
 /**
- * Two tall pecs + two deltoid caps that wrap down the arm.
- * Not a wide bar, not a yoke across the top.
+ * Front silhouette is authored in XY: one kidney per side (pec mound
+ * running diagonally into a round deltoid), U-neckline, rounded hem.
+ * Z is only thickness on that silhouette. Not a vest, not two balls.
  */
 function torsoField(x: number, y: number, z: number): number {
-  const pecL = ellip(x, y, z, -0.108, 0.152, 0.06, 0.15, 0.14, 0.08);
-  const pecR = ellip(x, y, z, 0.108, 0.152, 0.06, 0.15, 0.14, 0.08);
-  const delL = ellip(x, y, z, -0.314, 0.226, 0.018, 0.088, 0.1, 0.08);
-  const delR = ellip(x, y, z, 0.314, 0.226, 0.018, 0.088, 0.1, 0.08);
-  const slL = ellip(x, y, z, -0.298, 0.055, 0.006, 0.06, 0.128, 0.048);
-  const slR = ellip(x, y, z, 0.298, 0.055, 0.006, 0.06, 0.128, 0.048);
+  const ax = Math.abs(x);
+  const pec = ellip2(ax, y, 0.108, 0.118, 0.14, 0.126);
+  const del = ellip2(ax, y, 0.328, 0.226, 0.086, 0.09);
+  const conn = capsule2(ax, y, 0.118, 0.136, 0.308, 0.216, 0.094);
+  let d2 = smin(smin(pec, del, 0.12), conn, 0.09);
 
-  let d = smin(pecL, pecR, 0.032);
-  d = smin(d, smin(delL, delR, 0.038), 0.048);
-  d = smin(d, smin(slL, slR, 0.04), 0.05);
-
-  if (y > 0.235) {
-    const well = Math.hypot(x / 0.088, (z - 0.008) / 0.065) - 1;
-    d = smax(d, -well + (y - 0.235) * 2.1, 0.028);
+  if (y > 0.208) {
+    const well = 0.122 + (y - 0.208) * 1.9;
+    d2 = smax(d2, well - ax, 0.034);
   }
-  d = smax(d, -z - 0.022, 0.02);
+
+  const pecW = Math.exp(-((ax - 0.108) ** 2) / 0.018 - ((y - 0.118) ** 2) / 0.016);
+  const delW = Math.exp(-((ax - 0.328) ** 2) / 0.012 - ((y - 0.226) ** 2) / 0.012);
+  const cleft = Math.exp(-(ax ** 2) / 0.0036) * Math.max(0, 1 - Math.abs(y - 0.12) / 0.12);
+  const zThick = 0.036 + 0.058 * pecW + 0.042 * delW - 0.02 * cleft;
+  const zMid = 0.03 + 0.034 * pecW + 0.014 * delW;
+
+  let d = smax(d2, Math.abs(z - zMid) - zThick, 0.018);
+  d = smax(d, -z - 0.016, 0.014);
   return d;
 }
 
@@ -153,21 +163,16 @@ function fieldGrad(x: number, y: number, z: number): [number, number, number] {
   return [dx / n, dy / n, dz / n];
 }
 
-function marchHit(y: number, ang: number): [number, number, number] | null {
-  const dx = Math.sin(ang);
-  const dz = Math.cos(ang);
-  let t = 0.55;
-  let prev = torsoField(dx * t, y, 0.018 + dz * t);
-  for (let i = 0; i < 100; i += 1) {
-    t -= 0.006;
-    if (t < 0.015) break;
-    const x = dx * t;
-    const z = 0.018 + dz * t;
+function frontHit(x: number, y: number): [number, number, number] | null {
+  let z = 0.22;
+  let prev = torsoField(x, y, z);
+  for (let i = 0; i < 70; i += 1) {
+    z -= 0.0045;
+    if (z < -0.04) break;
     const d = torsoField(x, y, z);
     if (prev > 0 && d <= 0) {
       const f = prev / (prev - d);
-      const tt = t + 0.006 - f * 0.006;
-      return [dx * tt, y, 0.018 + dz * tt];
+      return [x, y, z + 0.0045 - f * 0.0045];
     }
     prev = d;
   }
@@ -175,19 +180,19 @@ function marchHit(y: number, ang: number): [number, number, number] | null {
 }
 
 export function createPecShell(): THREE.BufferGeometry {
-  const nu = 68;
-  const nv = 48;
-  const a0 = -2.3;
-  const a1 = 2.3;
-  const y0 = -0.06;
-  const y1 = 0.34;
+  const nu = 80;
+  const nv = 56;
+  const x0 = -0.43;
+  const x1 = 0.43;
+  const y0 = -0.05;
+  const y1 = 0.332;
   const cols = nu + 1;
   const hits: Array<[number, number, number] | null> = [];
 
   for (let iv = 0; iv <= nv; iv += 1) {
     const y = y0 + (iv / nv) * (y1 - y0);
     for (let iu = 0; iu <= nu; iu += 1) {
-      hits.push(marchHit(y, a0 + (iu / nu) * (a1 - a0)));
+      hits.push(frontHit(x0 + (iu / nu) * (x1 - x0), y));
     }
   }
 
@@ -204,7 +209,7 @@ export function createPecShell(): THREE.BufferGeometry {
     const [x, y, z] = h;
     const [nx, ny, nz] = fieldGrad(x, y, z);
     positions.push(x, y, z);
-    inner.push(x - nx * 0.036, y - ny * 0.036, z - nz * 0.036);
+    inner.push(x - nx * 0.034, y - ny * 0.034, z - nz * 0.034);
     live.push(true);
   }
 
@@ -226,18 +231,32 @@ export function createPecShell(): THREE.BufferGeometry {
       quad(frontCount + b, frontCount + a, frontCount + d, frontCount + c);
     }
   }
-  for (let i = 0; i < nv; i += 1) {
-    const L = i * cols;
-    const L2 = L + cols;
-    if (live[L] && live[L2]) quad(frontCount + L, L, frontCount + L2, L2);
-    const R = i * cols + nu;
-    const R2 = R + cols;
-    if (live[R] && live[R2]) quad(R, frontCount + R, R2, frontCount + R2);
-  }
 
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Fitted black abdomen. Fills the empty triangles under the pec hem. */
+export function createMidriff(): THREE.BufferGeometry {
+  const profile = [
+    new THREE.Vector2(0.168, 0.092),
+    new THREE.Vector2(0.158, 0.062),
+    new THREE.Vector2(0.14, 0.032),
+    new THREE.Vector2(0.122, 0.004),
+    new THREE.Vector2(0.118, -0.028),
+    new THREE.Vector2(0.128, -0.056),
+    new THREE.Vector2(0.142, -0.078),
+  ];
+  const geo = new THREE.LatheGeometry(profile, 28);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const z = pos.getZ(i);
+    pos.setZ(i, z > 0 ? z * 0.82 : z * 0.7);
+  }
+  pos.needsUpdate = true;
   geo.computeVertexNormals();
   return geo;
 }
@@ -295,8 +314,8 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
     rings.push({
       y: -t * length,
       rx: 0.078 + quad * 0.02 - t * 0.01,
-      rzFront: 0.145 + quad * 0.062 - t * 0.018,
-      rzBack: 0.072 + quad * 0.02 - t * 0.01,
+      rzFront: 0.168 + quad * 0.078 - t * 0.02,
+      rzBack: 0.042 + quad * 0.012 - t * 0.008,
       ridge: 0.003 * quad,
       lip: i === 0 || i === steps ? 0.92 : 1,
       power: 0.42,
@@ -342,66 +361,3 @@ export function createKneeCap(): THREE.BufferGeometry {
   return geo;
 }
 
-function handField(x: number, y: number, z: number, side: number): number {
-  let d = ellip(x, y, z, 0, -0.032, 0.002, 0.044, 0.04, 0.028);
-  const digits: Array<[number, number, number, number, number, number]> = [
-    [-0.028, -0.082, 0.006, 0.014, 0.03, 0.013],
-    [-0.009, -0.092, 0.006, 0.015, 0.034, 0.014],
-    [0.01, -0.09, 0.006, 0.0145, 0.032, 0.0135],
-    [0.026, -0.078, 0.006, 0.013, 0.026, 0.012],
-  ];
-  for (const [cx, cy, cz, rx, ry, rz] of digits) {
-    d = smin(d, ellip(x, y, z, cx, cy, cz, rx, ry, rz), 0.011);
-  }
-  d = smin(d, ellip(x, y, z, side * 0.038, -0.018, 0.012, 0.013, 0.024, 0.013), 0.01);
-  return d;
-}
-
-/** One hand mass: palm plus finger lobes. Not capsules on a sphere. */
-export function createHandMass(side: number): THREE.BufferGeometry {
-  const nu = 28;
-  const nv = 32;
-  const cols = nu + 1;
-  const positions: number[] = [];
-  for (let iv = 0; iv <= nv; iv += 1) {
-    const v = iv / nv;
-    const y = 0.02 - v * 0.14;
-    for (let iu = 0; iu <= nu; iu += 1) {
-      const a = -Math.PI + (iu / nu) * Math.PI * 2;
-      let t = 0.12;
-      let hit: [number, number, number] | null = null;
-      let prev = handField(Math.sin(a) * t, y, Math.cos(a) * t, side);
-      for (let k = 0; k < 40; k += 1) {
-        t -= 0.004;
-        if (t < 0.002) break;
-        const x = Math.sin(a) * t;
-        const z = Math.cos(a) * t;
-        const d = handField(x, y, z, side);
-        if (prev > 0 && d <= 0) {
-          const f = prev / (prev - d);
-          const tt = t + 0.004 - f * 0.004;
-          hit = [Math.sin(a) * tt, y, Math.cos(a) * tt];
-          break;
-        }
-        prev = d;
-      }
-      if (hit) positions.push(hit[0], hit[1], hit[2]);
-      else positions.push(0, y, 0);
-    }
-  }
-  const indices: number[] = [];
-  for (let i = 0; i < nv; i += 1) {
-    for (let j = 0; j < nu; j += 1) {
-      const a = i * cols + j;
-      const b = a + 1;
-      const c = a + cols;
-      const d = c + 1;
-      indices.push(a, c, b, b, c, d);
-    }
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
-}
