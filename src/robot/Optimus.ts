@@ -178,7 +178,7 @@ export class Optimus {
 
     for (const side of [-1, 1]) {
       const cap = this.mesh(createShoulderCap(side), this.mats.white);
-      cap.position.set(side * 0.3, 0.228, 0.018);
+      cap.position.set(side * 0.304, 0.226, 0.018);
       this.chest.add(cap);
     }
   }

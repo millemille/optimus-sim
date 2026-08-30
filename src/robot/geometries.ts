@@ -171,7 +171,7 @@ export function createThorax(): THREE.BufferGeometry {
  */
 export function createShoulderCap(side: number): THREE.BufferGeometry {
   const geo = new THREE.SphereGeometry(0.09, 28, 20);
-  geo.scale(1.12, 0.7, 0.98);
+  geo.scale(1.2, 0.7, 0.98);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
