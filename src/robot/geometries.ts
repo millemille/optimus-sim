@@ -106,30 +106,32 @@ function smoothstep(e0: number, e1: number, x: number): number {
 }
 
 /**
- * Athletic vest. The pec is a V. Each deltoid is a circle in the
- * front plane, widest at the equator (~0.40), inset at the top.
- * That is a shoulder, not a wing that kicks up and out.
+ * Athletic vest. Pec body stays wide. Each deltoid is a circle:
+ * widest at the equator (~0.40), top is inset and not outboard.
+ * Top hem follows that circle so the rim cannot kick up into a wing.
  */
 function vestSurf(ang: number, v: number): [number, number, number] {
   const a = ang / 2.15;
+  const yDel = 0.255;
+  const xDel = 0.314;
+  const rDel = 0.088;
+  const collar = 0.268;
 
-  const collar = 0.294;
-  const peak = 0.358;
-  const ad = Math.abs(Math.abs(a) - 0.62);
-  const delHill = ad < 0.42 ? 0.5 + 0.5 * Math.cos((ad / 0.42) * Math.PI) : 0;
-  let yTop = collar + (peak - collar) * delHill;
-  if (Math.abs(a) > 0.8) {
-    const o = (Math.abs(a) - 0.8) / 0.2;
-    yTop -= o * o * 0.05;
+  const xApprox = Math.sin(ang) * 0.4;
+  const dx = Math.abs(xApprox) - xDel;
+  let yTop = collar;
+  if (dx * dx < rDel * rDel) {
+    yTop = Math.max(collar, yDel + Math.sqrt(rDel * rDel - dx * dx));
+  }
+  if (Math.abs(a) > 0.7) {
+    const o = (Math.abs(a) - 0.7) / 0.3;
+    yTop -= o * o * 0.07;
   }
 
-  const yBot = 0.078 + 0.02 * a * a;
+  const yBot = 0.052 + 0.016 * a * a;
   const y = yBot + v * (yTop - yBot);
 
-  const pecW = 0.142 + smoothstep(0.078, 0.248, y) * 0.168;
-  const yDel = 0.268;
-  const xDel = 0.312;
-  const rDel = 0.09;
+  const pecW = 0.16 + smoothstep(0.052, 0.22, y) * 0.18;
   const dy = y - yDel;
   let delW = 0;
   if (dy * dy < rDel * rDel) {
@@ -137,18 +139,18 @@ function vestSurf(ang: number, v: number): [number, number, number] {
   }
   let hw = Math.max(pecW, delW);
 
-  if (y > 0.268 && Math.abs(a) < 0.32) {
-    const t = clamp01((y - 0.268) / 0.08);
-    const c = 1 - Math.abs(a) / 0.32;
-    hw -= t * t * c * c * 0.11;
-    hw = Math.max(0.08, hw);
+  if (y > 0.248 && Math.abs(a) < 0.3) {
+    const t = clamp01((y - 0.248) / 0.07);
+    const c = 1 - Math.abs(a) / 0.3;
+    hw -= t * t * c * c * 0.1;
+    hw = Math.max(0.085, hw);
   }
 
   const pec =
-    Math.exp(-((Math.abs(a) - 0.3) ** 2) / 0.09) * Math.exp(-((v - 0.4) ** 2) / 0.13);
-  const sternum = Math.exp(-(a * a) / 0.03) * 0.015 * (1 - v * 0.45);
-  let hz = 0.04 + pec * 0.068 - sternum;
-  hz *= 0.52 + 0.48 * Math.sin(Math.max(0.12, v) * Math.PI);
+    Math.exp(-((Math.abs(a) - 0.28) ** 2) / 0.1) * Math.exp(-((v - 0.42) ** 2) / 0.14);
+  const sternum = Math.exp(-(a * a) / 0.028) * 0.014 * (1 - v * 0.4);
+  let hz = 0.044 + pec * 0.07 - sternum;
+  hz *= 0.5 + 0.5 * Math.sin(Math.max(0.1, v) * Math.PI);
 
   const wrap = Math.max(0.18, Math.cos(ang * 0.36));
   return [Math.sin(ang) * hw, y, hz * wrap];
@@ -314,25 +316,25 @@ export function createFingerVolume(length: number, radius: number): THREE.Buffer
   const r = radius;
   const profile = [
     new THREE.Vector2(0.0, 0.0),
-    new THREE.Vector2(r * 0.82, 0.03),
-    new THREE.Vector2(r * 1.08, 0.18),
-    new THREE.Vector2(r * 0.94, 0.34),
-    new THREE.Vector2(r * 1.06, 0.5),
-    new THREE.Vector2(r * 0.88, 0.68),
-    new THREE.Vector2(r * 0.7, 0.84),
-    new THREE.Vector2(r * 0.4, 0.95),
+    new THREE.Vector2(r * 0.88, 0.04),
+    new THREE.Vector2(r * 1.12, 0.2),
+    new THREE.Vector2(r * 0.96, 0.36),
+    new THREE.Vector2(r * 1.1, 0.52),
+    new THREE.Vector2(r * 0.92, 0.7),
+    new THREE.Vector2(r * 0.72, 0.86),
+    new THREE.Vector2(r * 0.42, 0.96),
     new THREE.Vector2(0.0, 1.0),
   ];
-  const geo = new THREE.LatheGeometry(profile, 20);
-  geo.scale(1.05, -length, 0.9);
+  const geo = new THREE.LatheGeometry(profile, 22);
+  geo.scale(1.08, -length, 0.92);
   geo.computeVertexNormals();
   return geo;
 }
 
 /** Rounded palm you can read from across the room. */
 export function createPalm(): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(0.04, 22, 18);
-  geo.scale(1.38, 1.02, 0.64);
+  const geo = new THREE.SphereGeometry(0.044, 22, 18);
+  geo.scale(1.42, 1.08, 0.68);
   geo.computeVertexNormals();
   return geo;
 }

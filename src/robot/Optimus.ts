@@ -266,25 +266,31 @@ export class Optimus {
     g.add(dorsal);
 
     const digits = [
-      { x: -0.03, len: 0.074, r: 0.0124, spread: 0.16, curl: 0.22 },
-      { x: -0.01, len: 0.088, r: 0.0134, spread: 0.05, curl: 0.16 },
-      { x: 0.01, len: 0.084, r: 0.0128, spread: -0.05, curl: 0.18 },
-      { x: 0.028, len: 0.068, r: 0.0116, spread: -0.18, curl: 0.26 },
+      { x: -0.032, len: 0.078, r: 0.0162, spread: 0.2, curl: 0.28 },
+      { x: -0.011, len: 0.092, r: 0.0174, spread: 0.06, curl: 0.2 },
+      { x: 0.011, len: 0.088, r: 0.0168, spread: -0.06, curl: 0.22 },
+      { x: 0.03, len: 0.072, r: 0.0152, spread: -0.22, curl: 0.32 },
     ];
     for (const d of digits) {
-      const f = this.mesh(createFingerVolume(d.len, d.r), this.mats.white);
-      f.position.set(d.x, -0.052, 0.008);
+      const core = this.mesh(createFingerVolume(d.len, d.r * 0.62), this.mats.matte);
+      core.position.set(d.x, -0.054, 0.004);
+      core.rotation.z = d.spread;
+      core.rotation.x = d.curl;
+      core.rotation.y = d.x * 1.2;
+      g.add(core);
+      const f = this.mesh(createFingerVolume(d.len * 0.96, d.r), this.mats.white);
+      f.position.set(d.x, -0.054, 0.012);
       f.rotation.z = d.spread;
       f.rotation.x = d.curl;
-      f.rotation.y = d.x * 1.1;
+      f.rotation.y = d.x * 1.2;
       g.add(f);
     }
 
-    const thumb = this.mesh(createFingerVolume(0.052, 0.012), this.mats.white);
-    thumb.position.set(side * 0.038, -0.008, 0.01);
-    thumb.rotation.z = side * -0.85;
-    thumb.rotation.x = 0.55;
-    thumb.rotation.y = side * 0.28;
+    const thumb = this.mesh(createFingerVolume(0.056, 0.015), this.mats.white);
+    thumb.position.set(side * 0.04, -0.006, 0.012);
+    thumb.rotation.z = side * -0.88;
+    thumb.rotation.x = 0.58;
+    thumb.rotation.y = side * 0.32;
     g.add(thumb);
     return g;
   }
