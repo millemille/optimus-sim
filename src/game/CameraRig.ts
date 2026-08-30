@@ -3,12 +3,12 @@ import * as THREE from "three";
 const SENSITIVITY = 0.0022;
 const MIN_PITCH = -0.35;
 const MAX_PITCH = 0.72;
-const DISTANCE = 3.35;
 const LOOK_HEIGHT = 1.42;
 
 export class CameraRig {
   yaw = 0;
   pitch = 0.22;
+  distance = 3.35;
   private readonly offset = new THREE.Vector3();
   private readonly target = new THREE.Vector3();
 
@@ -26,12 +26,20 @@ export class CameraRig {
     this.pitch = THREE.MathUtils.clamp(this.pitch + pitch * 1.3 * dt, MIN_PITCH, MAX_PITCH);
   }
 
+  setPortrait(view: "front" | "q" | "side"): void {
+    this.distance = 2.55;
+    this.pitch = 0.06;
+    if (view === "front") this.yaw = 0;
+    else if (view === "q") this.yaw = 0.62;
+    else this.yaw = Math.PI / 2;
+  }
+
   update(origin: THREE.Vector3): void {
     const cosPitch = Math.cos(this.pitch);
     this.offset.set(
-      Math.sin(this.yaw) * cosPitch * DISTANCE,
-      Math.sin(this.pitch) * DISTANCE + 0.28,
-      Math.cos(this.yaw) * cosPitch * DISTANCE,
+      Math.sin(this.yaw) * cosPitch * this.distance,
+      Math.sin(this.pitch) * this.distance + 0.28,
+      Math.cos(this.yaw) * cosPitch * this.distance,
     );
     this.camera.position.copy(origin).add(this.offset);
     this.camera.position.y = Math.max(0.35, this.camera.position.y);

@@ -23,6 +23,11 @@ export class Hud {
     this.hud.hidden = false;
   }
 
+  hideAll(): void {
+    this.overlay.hidden = true;
+    this.hud.hidden = true;
+  }
+
   sync(mission: Mission): void {
     this.missionText.textContent = mission.missionText();
     this.missionStatus.textContent = mission.status();

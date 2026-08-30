@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Factory } from "../world/Factory.ts";
 import { Hud } from "../ui/hud.ts";
+import { applyStudioLights, poseStudioCamera, studioViewFromUrl } from "./Studio.ts";
 import { CameraRig } from "./CameraRig.ts";
 import { Input } from "./Input.ts";
 import { Mission } from "./Mission.ts";
@@ -20,6 +21,7 @@ export class Game {
   private playing = false;
   private started = false;
   private raf = 0;
+  private readonly studio = studioViewFromUrl();
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -46,7 +48,16 @@ export class Game {
     this.scene.add(this.factory.group);
     this.scene.add(this.player.robot.root);
 
-    this.cameraRig.yaw = Math.PI;
+    if (this.studio) {
+      this.renderer.toneMappingExposure = 1.18;
+      this.scene.fog = null;
+      this.scene.background = new THREE.Color(0x4a4a4c);
+      applyStudioLights(this.scene, this.player.position);
+      poseStudioCamera(this.cameraRig, this.studio);
+      this.hud.hideAll();
+    } else {
+      this.cameraRig.yaw = Math.PI;
+    }
     this.cameraRig.update(this.player.position);
     this.hud.sync(this.mission);
 
@@ -78,6 +89,7 @@ export class Game {
   }
 
   private readonly onLock = (): void => {
+    if (this.studio) return;
     this.playing = document.pointerLockElement === this.canvas;
     if (this.playing) {
       this.started = true;
@@ -101,6 +113,12 @@ export class Game {
 
   private frame(): void {
     const dt = Math.min(this.clock.getDelta(), 0.05);
+    if (this.studio) {
+      this.player.robot.update(dt, false, 0, false);
+      this.cameraRig.update(this.player.position);
+      this.renderer.render(this.scene, this.camera);
+      return;
+    }
     if (this.playing) {
       const look = this.input.consumeLook();
       this.cameraRig.applyLook(look.x, look.y);
