@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
+  createFingerVolume,
   createKneeCap,
-  createKnuckleTile,
   createLimbShell,
+  createPalm,
   createPecShell,
-  createPhalanxPlate,
   createShinShell,
   createThighShell,
   createVisorSkull,
@@ -253,57 +253,34 @@ export class Optimus {
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
 
-    const palm = this.panel(0.072, 0.058, 0.014, this.mats.matte, 0.008);
-    palm.position.set(0, -0.032, -0.006);
+    const palm = this.mesh(createPalm(), this.mats.matte);
+    palm.position.set(0, -0.03, -0.004);
     g.add(palm);
 
-    const knuckles = [-0.024, -0.008, 0.008, 0.023];
-    for (const x of knuckles) {
-      const tile = this.mesh(createKnuckleTile(), this.mats.white);
-      tile.position.set(x, -0.022, 0.01);
-      g.add(tile);
-    }
+    const dorsal = this.mesh(createPalm(), this.mats.white);
+    dorsal.scale.set(0.92, 0.72, 0.42);
+    dorsal.position.set(0, -0.026, 0.012);
+    g.add(dorsal);
 
     const digits = [
-      { x: -0.028, len: 0.07, w: 0.013 },
-      { x: -0.01, len: 0.084, w: 0.0145 },
-      { x: 0.009, len: 0.08, w: 0.014 },
-      { x: 0.026, len: 0.064, w: 0.0125 },
+      { x: -0.026, len: 0.068, r: 0.0092, spread: 0.1 },
+      { x: -0.009, len: 0.082, r: 0.0102, spread: 0.03 },
+      { x: 0.008, len: 0.078, r: 0.0098, spread: -0.03 },
+      { x: 0.024, len: 0.062, r: 0.0088, spread: -0.1 },
     ];
     for (const d of digits) {
-      const f = this.finger(d.len, d.w);
-      f.position.set(d.x, -0.054, 0.006);
+      const f = this.mesh(createFingerVolume(d.len, d.r), this.mats.white);
+      f.position.set(d.x, -0.048, 0.006);
+      f.rotation.z = d.spread;
+      f.rotation.x = 0.08;
       g.add(f);
     }
 
-    const thumb = this.finger(0.048, 0.012);
-    thumb.position.set(side * 0.038, -0.014, 0.004);
-    thumb.rotation.z = side * -0.72;
-    thumb.rotation.x = 0.35;
+    const thumb = this.mesh(createFingerVolume(0.046, 0.009), this.mats.white);
+    thumb.position.set(side * 0.034, -0.012, 0.006);
+    thumb.rotation.z = side * -0.78;
+    thumb.rotation.x = 0.42;
     g.add(thumb);
-    return g;
-  }
-
-  private finger(len: number, width: number): THREE.Group {
-    const g = new THREE.Group();
-    const shares = [0.38, 0.33, 0.29];
-    let y = 0;
-    for (let i = 0; i < 3; i += 1) {
-      const L = len * shares[i];
-      const w = width * (1 - i * 0.08);
-      const core = this.mesh(new THREE.CylinderGeometry(w * 0.28, w * 0.24, L * 0.92, 8), this.mats.matte);
-      core.position.set(0, y - L * 0.5, 0);
-      g.add(core);
-      const plate = this.mesh(createPhalanxPlate(w, L * 0.72), this.mats.white);
-      plate.position.set(0, y - L * 0.5, 0.006);
-      g.add(plate);
-      if (i < 2) {
-        const joint = this.mesh(new THREE.SphereGeometry(w * 0.32, 8, 6), this.mats.matte);
-        joint.position.set(0, y - L, 0);
-        g.add(joint);
-      }
-      y -= L;
-    }
     return g;
   }
 
