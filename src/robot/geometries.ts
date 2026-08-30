@@ -32,40 +32,126 @@ export function createVisorSkull(): THREE.BufferGeometry {
   return geo;
 }
 
+type ArmorRing = {
+  y: number;
+  rx: number;
+  rzFront: number;
+  rzBack: number;
+  power?: number;
+  ridge?: number;
+  lip?: number;
+};
+
+/** Open armor shell: paneled front, scooped back, hard lips, optional ridge. */
+function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
+  const cols = segs + 1;
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  for (const ring of rings) {
+    const lip = ring.lip ?? 1;
+    const rx = ring.rx * lip;
+    const rzF = ring.rzFront * lip;
+    const rzB = ring.rzBack * lip;
+    const pwr = ring.power ?? 0.62;
+    const ridge = ring.ridge ?? 0;
+    for (let j = 0; j <= segs; j += 1) {
+      const a = (j / segs) * Math.PI * 2;
+      const c = Math.cos(a);
+      const s = Math.sin(a);
+      const x = rx * c;
+      const z =
+        s >= 0
+          ? rzF * s ** pwr + ridge * s ** 3 * (1 - Math.abs(c) * 0.65)
+          : rzB * s;
+      positions.push(x, ring.y, z);
+    }
+  }
+
+  const last = rings.length - 1;
+  for (let i = 0; i < last; i += 1) {
+    for (let j = 0; j < segs; j += 1) {
+      const a = i * cols + j;
+      const b = a + 1;
+      const c = a + cols;
+      const d = c + 1;
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+
+  const topCenter = positions.length / 3;
+  positions.push(0, rings[0].y, 0);
+  const botCenter = positions.length / 3;
+  positions.push(0, rings[last].y, 0);
+  for (let j = 0; j < segs; j += 1) {
+    indices.push(topCenter, j, j + 1);
+    const b = last * cols + j;
+    indices.push(botCenter, b + 1, b);
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 /**
- * Pectoral volume with front depth. The collar is front-only so the
- * neck is not wrapped in a white ring; the lower pec still has a back.
- * Sides stay wide through the deltoid line so pec and shoulder read as
- * one mass, not a T of boxes.
+ * Pectoral yoke: V-taper plate with a sternum split and shoulder wings
+ * that slope into the deltoid. Front-only collar so the neck stays bare.
  */
 export function createPecShell(): THREE.BufferGeometry {
-  const segsV = 24;
-  const segsU = 48;
+  const segsV = 28;
+  const segsU = 52;
   const cols = segsU + 1;
   const positions: number[] = [];
   const indices: number[] = [];
 
   for (let iy = 0; iy <= segsV; iy += 1) {
     const t = iy / segsV;
-    const y = t * 0.32;
-    let rMax = 0.11;
-    if (t < 0.12) rMax = 0.11 + (t / 0.12) * 0.1;
-    else if (t < 0.38) rMax = 0.21 + ((t - 0.12) / 0.26) * 0.07;
-    else if (t < 0.9) rMax = 0.3;
-    else rMax = 0.3 - ((t - 0.9) / 0.1) * 0.03;
+    const y0 = t * 0.29;
+    let rx = 0.1;
+    let rzF = 0.055;
+    let rzB = 0.038;
+    if (t < 0.14) {
+      rx = 0.1 + (t / 0.14) * 0.055;
+      rzF = 0.055 + (t / 0.14) * 0.03;
+      rzB = 0.038;
+    } else if (t < 0.48) {
+      rx = 0.155 + ((t - 0.14) / 0.34) * 0.04;
+      rzF = 0.085 + ((t - 0.14) / 0.34) * 0.028;
+      rzB = 0.042;
+    } else if (t < 0.8) {
+      rx = 0.195 + ((t - 0.48) / 0.32) * 0.03;
+      rzF = 0.113;
+      rzB = 0.028;
+    } else {
+      const k = (t - 0.8) / 0.2;
+      rx = 0.225 - k * 0.05;
+      rzF = 0.1 - k * 0.018;
+      rzB = 0.028 * (1 - k * 0.92);
+    }
 
     for (let ix = 0; ix <= segsU; ix += 1) {
       const a = (ix / segsU) * Math.PI * 2;
-      const cos = Math.cos(a);
-      const sin = Math.sin(a);
-      let r = rMax;
-      if (t > 0.76 && sin < 0) {
-        const lift = (t - 0.76) / 0.24;
-        r *= 1 - lift * 0.9;
+      const c = Math.cos(a);
+      const s = Math.sin(a);
+      let y = y0;
+      if (t > 0.52) {
+        y -= Math.abs(c) ** 2.1 * (t - 0.52) * 0.09;
       }
-      const x = r * cos;
-      let z = r * sin * 0.52;
-      if (z > 0) z *= 1.12;
+      let r = rx;
+      if (t > 0.74 && s < 0) {
+        r *= 1 - ((t - 0.74) / 0.26) * 0.88;
+      }
+      const x = r * c;
+      let z: number;
+      if (s >= 0) {
+        z = rzF * s ** 0.52;
+        z *= 1 - 0.18 * Math.exp(-(x * x) / 0.00145);
+      } else {
+        z = rzB * s;
+      }
       positions.push(x, y, z);
     }
   }
@@ -87,219 +173,102 @@ export function createPecShell(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Deltoid + upper-arm start as one rounded mass that dumps down the arm. */
+/** Pauldron wrap that dumps onto the upper arm. Inner face is scooped. */
 export function createDeltoid(): THREE.BufferGeometry {
-  const radial = 32;
-  const rings = 14;
-  const cols = radial + 1;
-  const positions: number[] = [];
-  const indices: number[] = [];
-
-  for (let i = 0; i <= rings; i += 1) {
-    const t = i / rings;
-    const y = 0.06 - t * 0.26;
-    const rx = 0.125 - t * 0.042;
-    const rz = 0.115 - t * 0.038;
-    for (let j = 0; j <= radial; j += 1) {
-      const a = (j / radial) * Math.PI * 2;
-      const x = rx * Math.cos(a);
-      let z = rz * Math.sin(a);
-      if (z < 0) z *= 0.55;
-      else z *= 1.08;
-      positions.push(x, y, z);
-    }
+  const rings: ArmorRing[] = [
+    { y: 0.062, rx: 0.092, rzFront: 0.088, rzBack: 0.036, lip: 0.9 },
+    { y: 0.04, rx: 0.098, rzFront: 0.094, rzBack: 0.038, ridge: 0.008 },
+    { y: 0.01, rx: 0.09, rzFront: 0.086, rzBack: 0.032, ridge: 0.006 },
+    { y: -0.04, rx: 0.078, rzFront: 0.074, rzBack: 0.028 },
+    { y: -0.1, rx: 0.064, rzFront: 0.06, rzBack: 0.024 },
+    { y: -0.168, rx: 0.05, rzFront: 0.048, rzBack: 0.02, lip: 0.9 },
+  ];
+  const geo = loftArmor(rings, 40);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const x = pos.getX(i);
+    if (x < 0) pos.setX(i, x * 0.48);
   }
-
-  for (let i = 0; i < rings; i += 1) {
-    for (let j = 0; j < radial; j += 1) {
-      const a = i * cols + j;
-      const b = a + 1;
-      const c = a + cols;
-      const d = c + 1;
-      indices.push(a, c, b, b, c, d);
-    }
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
+  pos.needsUpdate = true;
   geo.computeVertexNormals();
   return geo;
 }
 
-/** Flattened-oval limb plate with real thickness, scooped back, hard lips. */
+/** Limb armor plate: taper, front ridge, scooped back. */
 export function createLimbShell(
   length: number,
   rxTop: number,
   rxBot: number,
   rz: number,
 ): THREE.BufferGeometry {
-  const radial = 28;
-  const rings = 12;
-  const cols = radial + 1;
-  const positions: number[] = [];
-  const indices: number[] = [];
-
-  for (let i = 0; i <= rings; i += 1) {
-    const t = i / rings;
-    const y = -t * length;
-    const lip = i === 0 || i === rings ? 0.88 : 1;
-    const rx = (rxTop + (rxBot - rxTop) * t) * lip;
-    const rzi = rz * lip;
-    for (let j = 0; j <= radial; j += 1) {
-      const a = (j / radial) * Math.PI * 2;
-      const x = rx * Math.cos(a);
-      let z = rzi * Math.sin(a);
-      const mid = 1 - Math.abs(t - 0.38) * 1.4;
-      if (z > 0) z *= 1.55 + Math.max(0, mid) * 0.35;
-      else z *= 0.48;
-      positions.push(x, y, z);
-    }
+  const rings: ArmorRing[] = [];
+  const steps = 10;
+  for (let i = 0; i <= steps; i += 1) {
+    const t = i / steps;
+    const mid = 1 - Math.abs(t - 0.4) * 1.5;
+    rings.push({
+      y: -t * length,
+      rx: rxTop + (rxBot - rxTop) * t,
+      rzFront: rz * (1.05 + Math.max(0, mid) * 0.18),
+      rzBack: rz * 0.38,
+      ridge: 0.006 * Math.max(0, mid),
+      lip: i === 0 || i === steps ? 0.88 : 1,
+      power: 0.58,
+    });
   }
-
-  stitchLoft(positions, indices, rings, cols, radial, length);
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
+  return loftArmor(rings, 28);
 }
 
-/**
- * D-shaped thigh: wide sides, scooped back, anterior plate about as
- * deep as the pec. Flattened front so the side still is a cap, not a pipe.
- */
+/** Athletic quad plate: peaks mid-thigh, tapers to the knee, center ridge. */
 export function createThighShell(length: number): THREE.BufferGeometry {
-  const radial = 32;
-  const rings = 16;
-  const cols = radial + 1;
-  const positions: number[] = [];
-  const indices: number[] = [];
-
-  for (let i = 0; i <= rings; i += 1) {
-    const t = i / rings;
-    const y = -t * length;
-    const lip = i === 0 || i === rings ? 0.9 : 1;
-    const rx = (0.122 - t * 0.03) * lip;
-    const quad = Math.exp(-(((t - 0.3) / 0.26) ** 2));
-    const rzFront = (0.16 + quad * 0.035) * lip;
-    const rzBack = 0.05 * lip;
-    for (let j = 0; j <= radial; j += 1) {
-      const a = (j / radial) * Math.PI * 2;
-      const s = Math.sin(a);
-      const x = rx * Math.cos(a);
-      const z = s >= 0 ? rzFront * s ** 0.5 : rzBack * s;
-      positions.push(x, y, z);
-    }
+  const rings: ArmorRing[] = [];
+  const steps = 14;
+  for (let i = 0; i <= steps; i += 1) {
+    const t = i / steps;
+    const quad = Math.exp(-(((t - 0.32) / 0.22) ** 2));
+    const rx = 0.072 + quad * 0.022 - t * 0.014;
+    const rzF = 0.078 + quad * 0.05 - t * 0.012;
+    rings.push({
+      y: -t * length,
+      rx,
+      rzFront: rzF,
+      rzBack: 0.028 - t * 0.006,
+      ridge: 0.012 * quad,
+      lip: i === 0 || i === steps ? 0.9 : 1,
+      power: 0.5,
+    });
   }
-
-  stitchLoft(positions, indices, rings, cols, radial, length);
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
+  return loftArmor(rings, 36);
 }
 
-/**
- * Shin with a tibial ridge. Same D idea, smaller than the thigh.
- */
+/** Shin plate with a tibial ridge. */
 export function createShinShell(length: number): THREE.BufferGeometry {
-  const radial = 28;
-  const rings = 14;
-  const cols = radial + 1;
-  const positions: number[] = [];
-  const indices: number[] = [];
-
-  for (let i = 0; i <= rings; i += 1) {
-    const t = i / rings;
-    const y = -t * length;
-    const lip = i === 0 || i === rings ? 0.9 : 1;
-    const rx = (0.096 - t * 0.022) * lip;
-    const ridge = 1 + Math.max(0, 1 - Math.abs(t - 0.4) * 2) * 0.22;
-    const rzFront = 0.115 * ridge * lip;
-    const rzBack = 0.04 * lip;
-    for (let j = 0; j <= radial; j += 1) {
-      const a = (j / radial) * Math.PI * 2;
-      const s = Math.sin(a);
-      const x = rx * Math.cos(a);
-      const z = s >= 0 ? rzFront * s ** 0.55 : rzBack * s;
-      positions.push(x, y, z);
-    }
+  const rings: ArmorRing[] = [];
+  const steps = 12;
+  for (let i = 0; i <= steps; i += 1) {
+    const t = i / steps;
+    const ridge = Math.max(0, 1 - Math.abs(t - 0.38) * 1.8);
+    rings.push({
+      y: -t * length,
+      rx: 0.062 - t * 0.016,
+      rzFront: 0.072 - t * 0.018,
+      rzBack: 0.024 - t * 0.004,
+      ridge: 0.014 * ridge,
+      lip: i === 0 || i === steps ? 0.9 : 1,
+      power: 0.48,
+    });
   }
-
-  stitchLoft(positions, indices, rings, cols, radial, length);
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
+  return loftArmor(rings, 28);
 }
 
-/**
- * One white dorsal mitten: palm back plus four finger lobes. Reads as a
- * hand from studio distance, not a postage-stamp plate with black nubs.
- */
-export function createMittenDorsal(): THREE.BufferGeometry {
-  const shape = new THREE.Shape();
-  const half = 0.072;
-  shape.moveTo(-half * 0.84, 0.014);
-  shape.lineTo(-half, -0.06);
-  shape.lineTo(-half * 1.05, -0.145);
-
-  const tips = [-0.054, -0.018, 0.018, 0.054];
-  const tipY = -0.235;
-  const tipR = 0.0185;
-  for (const x of tips) {
-    shape.lineTo(x - tipR, tipY + tipR * 0.35);
-    shape.absarc(x, tipY, tipR, Math.PI, 0, false);
-  }
-
-  shape.lineTo(half * 1.04, -0.13);
-  shape.lineTo(half, -0.055);
-  shape.lineTo(half * 0.84, 0.012);
-  shape.closePath();
-
-  const geo = new THREE.ExtrudeGeometry(shape, {
-    depth: 0.024,
-    bevelEnabled: true,
-    bevelThickness: 0.005,
-    bevelSize: 0.004,
-    bevelSegments: 2,
-    curveSegments: 12,
-  });
-  geo.computeVertexNormals();
-  return geo;
-}
-
-function stitchLoft(
-  positions: number[],
-  indices: number[],
-  rings: number,
-  cols: number,
-  radial: number,
-  length: number,
-): void {
-  for (let i = 0; i < rings; i += 1) {
-    for (let j = 0; j < radial; j += 1) {
-      const a = i * cols + j;
-      const b = a + 1;
-      const c = a + cols;
-      const d = c + 1;
-      indices.push(a, c, b, b, c, d);
-    }
-  }
-
-  const topCenter = positions.length / 3;
-  positions.push(0, 0, 0);
-  const botCenter = positions.length / 3;
-  positions.push(0, -length, 0);
-  for (let j = 0; j < radial; j += 1) {
-    indices.push(topCenter, j, j + 1);
-    const b = rings * cols + j;
-    indices.push(botCenter, b + 1, b);
-  }
+/** Back-of-hand plate only. Fingers attach at the knuckles. */
+export function createDorsalPlate(): THREE.BufferGeometry {
+  const rings: ArmorRing[] = [
+    { y: 0.008, rx: 0.03, rzFront: 0.01, rzBack: 0.005, lip: 0.92 },
+    { y: -0.02, rx: 0.036, rzFront: 0.012, rzBack: 0.006 },
+    { y: -0.05, rx: 0.042, rzFront: 0.014, rzBack: 0.006, ridge: 0.003 },
+    { y: -0.082, rx: 0.046, rzFront: 0.013, rzBack: 0.005, ridge: 0.004 },
+    { y: -0.092, rx: 0.044, rzFront: 0.011, rzBack: 0.004, lip: 0.9 },
+  ];
+  return loftArmor(rings, 24);
 }

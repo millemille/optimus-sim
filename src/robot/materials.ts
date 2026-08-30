@@ -12,8 +12,8 @@ export type RobotMaterials = {
 export function createRobotMaterials(): RobotMaterials {
   return {
     white: new THREE.MeshStandardMaterial({
-      color: 0xf0ece4,
-      roughness: 0.7,
+      color: 0xf3efe6,
+      roughness: 0.58,
       metalness: 0.02,
       envMapIntensity: 0.12,
     }),
