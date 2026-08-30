@@ -96,124 +96,108 @@ function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
   return geo;
 }
 
-/** Tube loft with an open collar. No inner offset surface, so no z-fight. */
-function loftOpenShell(rings: ArmorRing[], segs = 36, capBottom = true): THREE.BufferGeometry {
-  const cols = segs + 1;
-  const positions: number[] = [];
-  const indices: number[] = [];
+/**
+ * Front-facing athletic vest on a structured (u,v) mesh. The
+ * boundary is the outline, so there is no cartesian stair-step.
+ * Peak half-span 0.402. Thickness is a straight back, not a
+ * polar inner shell.
+ */
+export function createPecShell(): THREE.BufferGeometry {
+  const nu = 40;
+  const nv = 32;
+  const yBot = -0.012;
 
-  for (const ring of rings) {
-    const lip = ring.lip ?? 1;
-    const rx = ring.rx * lip;
-    const rzF = ring.rzFront * lip;
-    const rzB = ring.rzBack * lip;
-    const pwr = ring.power ?? 0.5;
-    const ridge = ring.ridge ?? 0;
-    for (let j = 0; j <= segs; j += 1) {
-      const a = (j / segs) * Math.PI * 2;
-      const c = Math.cos(a);
-      const s = Math.sin(a);
-      const x = rx * c;
-      const z =
-        s >= 0
-          ? rzF * s ** pwr + ridge * s ** 3 * (1 - Math.abs(c) * 0.65)
-          : rzB * s;
-      positions.push(x, ring.y, z);
+  const halfWidth = (y: number): number => {
+    const t = (0.3 - y) / (0.3 - yBot);
+    const tt = Math.min(1, Math.max(0, t));
+    if (tt < 0.18) {
+      const u = tt / 0.18;
+      return 0.118 + 0.284 * (1 - Math.cos((u * Math.PI) / 2));
+    }
+    if (tt < 0.4) {
+      const u = (tt - 0.18) / 0.22;
+      return 0.402 - 0.07 * (u * u);
+    }
+    if (tt < 0.7) {
+      const u = (tt - 0.4) / 0.3;
+      return 0.332 - 0.082 * u;
+    }
+    const u = (tt - 0.7) / 0.3;
+    return 0.25 - 0.048 * (1 - Math.cos((u * Math.PI) / 2));
+  };
+
+  const collarY = (x: number): number => {
+    const t = Math.min(1, Math.abs(x) / 0.402);
+    return 0.274 + 0.02 * t * t;
+  };
+
+  const zFront = (x: number, y: number): number => {
+    const pec = Math.exp(-(x * x) / 0.024) * Math.exp(-((y - 0.165) ** 2) / 0.008);
+    const del =
+      Math.exp(-((Math.abs(x) - 0.3) ** 2) / 0.006) * Math.exp(-((y - 0.21) ** 2) / 0.0046);
+    return 0.042 + pec * 0.076 + del * 0.028;
+  };
+
+  const positions: number[] = [];
+  const cols = nu + 1;
+  for (let j = 0; j <= nv; j += 1) {
+    const v = j / nv;
+    for (let i = 0; i <= nu; i += 1) {
+      const u = (i / nu) * 2 - 1;
+      const yGuess = 0.3 + (yBot - 0.3) * v;
+      const hw = halfWidth(yGuess);
+      const x = u * hw;
+      let y = yGuess;
+      const cY = collarY(x);
+      if (y > cY) y = cY;
+      if (Math.abs(x) > 0.26 && y > 0.16) {
+        y -= ((Math.abs(x) - 0.26) / 0.15) * 0.022;
+      }
+      const z = zFront(x, y);
+      positions.push(x, y, z);
     }
   }
 
-  const last = rings.length - 1;
-  for (let i = 0; i < last; i += 1) {
-    for (let j = 0; j < segs; j += 1) {
-      const a = i * cols + j;
+  const backStart = positions.length / 3;
+  const backZ = 0.012;
+  for (let k = 0; k < backStart; k += 1) {
+    positions.push(positions[k * 3], positions[k * 3 + 1], backZ);
+  }
+
+  const indices: number[] = [];
+  const quad = (a: number, b: number, c: number, d: number): void => {
+    indices.push(a, c, b, b, c, d);
+  };
+  for (let j = 0; j < nv; j += 1) {
+    for (let i = 0; i < nu; i += 1) {
+      const a = j * cols + i;
       const b = a + 1;
       const c = a + cols;
       const d = c + 1;
-      indices.push(a, c, b, b, c, d);
+      quad(a, b, c, d);
+      quad(backStart + b, backStart + a, backStart + d, backStart + c);
     }
   }
-
-  if (capBottom) {
-    const botCenter = positions.length / 3;
-    positions.push(0, rings[last].y, 0);
-    for (let j = 0; j < segs; j += 1) {
-      const b = last * cols + j;
-      indices.push(botCenter, b + 1, b);
-    }
+  for (let j = 0; j < nv; j += 1) {
+    const L0 = j * cols;
+    const L1 = L0 + cols;
+    const R0 = L0 + nu;
+    const R1 = L1 + nu;
+    indices.push(L0, L1, backStart + L0, backStart + L0, L1, backStart + L1);
+    indices.push(R0, backStart + R0, R1, R1, backStart + R0, backStart + R1);
+  }
+  for (let i = 0; i < nu; i += 1) {
+    const t0 = i;
+    const t1 = i + 1;
+    const b0 = nv * cols + i;
+    const b1 = b0 + 1;
+    indices.push(t0, backStart + t0, t1, t1, backStart + t0, backStart + t1);
+    indices.push(b0, b1, backStart + b0, backStart + b0, b1, backStart + b1);
   }
 
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
-}
-
-/**
- * One athletic vest. Width is a human curve (U collar, pec, deltoid
- * peak, waist), not an ellipsoid circle and not two lofted halves.
- * Peak half-span 0.400, in the recovered ~293px band, not a 309px yoke.
- */
-export function createPecShell(): THREE.BufferGeometry {
-  const rings: ArmorRing[] = [];
-  const steps = 22;
-  const y0 = 0.318;
-  const y1 = -0.01;
-
-  for (let i = 0; i <= steps; i += 1) {
-    const t = i / steps;
-    let rx: number;
-    if (t < 0.28) {
-      const u = t / 0.28;
-      rx = 0.108 + 0.292 * (1 - Math.cos((u * Math.PI) / 2));
-    } else if (t < 0.48) {
-      const u = (t - 0.28) / 0.2;
-      rx = 0.4 - 0.078 * (u * u);
-    } else if (t < 0.72) {
-      const u = (t - 0.48) / 0.24;
-      rx = 0.322 - 0.072 * u;
-    } else {
-      const u = (t - 0.72) / 0.28;
-      rx = 0.25 - 0.055 * (1 - Math.cos((u * Math.PI) / 2));
-    }
-
-    const pecHill = Math.exp(-(((t - 0.38) / 0.16) ** 2));
-    const deltoid = Math.exp(-(((t - 0.28) / 0.12) ** 2));
-    rings.push({
-      y: y0 + (y1 - y0) * t,
-      rx,
-      rzFront: 0.052 + pecHill * 0.078 + deltoid * 0.016,
-      rzBack: 0.04 + pecHill * 0.01,
-      power: 0.5,
-      ridge: pecHill * 0.006,
-    });
-  }
-
-  const geo = loftOpenShell(rings, 40, true);
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i += 1) {
-    const x = pos.getX(i);
-    const y = pos.getY(i);
-    let z = pos.getZ(i);
-
-    if (y > 0.255) {
-      const u = Math.exp(-((x / 0.09) ** 2)) * ((y - 0.255) / 0.07);
-      pos.setY(i, y - u * 0.055);
-    }
-
-    if (Math.abs(x) > 0.26 && y > 0.12) {
-      const wrap = ((Math.abs(x) - 0.26) / 0.15) * 0.04;
-      pos.setY(i, pos.getY(i) - wrap);
-    }
-
-    if (z > 0) {
-      const pecL = Math.exp(-(((x + 0.086) / 0.078) ** 2)) * Math.exp(-(((y - 0.175) / 0.085) ** 2));
-      const pecR = Math.exp(-(((x - 0.086) / 0.078) ** 2)) * Math.exp(-(((y - 0.175) / 0.085) ** 2));
-      z += (pecL + pecR) * 0.042;
-      pos.setZ(i, z);
-    }
-  }
-  pos.needsUpdate = true;
   geo.computeVertexNormals();
   return geo;
 }

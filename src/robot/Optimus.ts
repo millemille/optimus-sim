@@ -210,6 +210,10 @@ export class Optimus {
     housing.position.y = -0.055;
     upper.add(housing);
 
+    const bicep = this.panel(0.056, 0.155, 0.022, this.mats.white, 0.014);
+    bicep.position.set(0, -0.118, 0.034);
+    upper.add(bicep);
+
     const elbow = new THREE.Group();
     elbow.position.set(0, -0.22, 0);
     upper.add(elbow);
@@ -249,17 +253,17 @@ export class Optimus {
     dorsal.position.set(0, -0.026, 0.012);
     g.add(dorsal);
 
-    const xs = [-0.02, -0.007, 0.007, 0.02];
-    const lens = [0.046, 0.054, 0.052, 0.042];
-    const fans = [-0.1, -0.03, 0.03, 0.12];
+    const xs = [-0.022, -0.008, 0.008, 0.022];
+    const lens = [0.052, 0.062, 0.058, 0.048];
+    const fans = [-0.12, -0.04, 0.04, 0.14];
     for (let i = 0; i < 4; i += 1) {
-      const knuckle = this.mesh(new THREE.SphereGeometry(0.0064, 8, 6), this.mats.joint);
+      const knuckle = this.mesh(new THREE.SphereGeometry(0.0068, 8, 6), this.mats.joint);
       knuckle.position.set(xs[i], -0.044, 0.004);
       g.add(knuckle);
-      const plate = this.mesh(createFingerPlate(lens[i], 0.0124), this.mats.white);
-      plate.position.set(xs[i], -0.046, 0.006);
+      const plate = this.mesh(createFingerPlate(lens[i], 0.014), this.mats.white);
+      plate.position.set(xs[i], -0.046, 0.008);
       plate.rotation.z = fans[i];
-      plate.rotation.x = 0.18;
+      plate.rotation.x = 0.16;
       g.add(plate);
     }
 
