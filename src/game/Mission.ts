@@ -1,9 +1,8 @@
-import * as THREE from "three";
 import { Factory } from "../world/Factory.ts";
 import { Player } from "./Player.ts";
 
 const PICK_RANGE = 2.5;
-const DROP_RANGE = 2.8;
+const DROP_RANGE = 4.0;
 
 export type MissionPhase = "seek" | "carry" | "done";
 
@@ -16,11 +15,15 @@ export class Mission {
   ) {}
 
   prompt(): string | null {
-    if (this.phase === "seek" && this.near(this.factory.crate)) {
-      return "E / click  Pick up crate";
+    if (this.phase === "seek") {
+      const d = this.distanceTo(this.factory.crateHome.x, this.factory.crateHome.z);
+      if (d < PICK_RANGE) return "E / click  Pick up crate";
+      return null;
     }
-    if (this.phase === "carry" && this.near(this.factory.dropZone)) {
-      return "E / click  Place crate on bay mark";
+    if (this.phase === "carry") {
+      const d = this.distanceTo(this.factory.dropPos.x, this.factory.dropPos.z);
+      if (d < DROP_RANGE) return "E / click  Place crate on the yellow pad";
+      return `Yellow pad ${d.toFixed(0)}m away`;
     }
     return null;
   }
@@ -37,11 +40,11 @@ export class Mission {
   }
 
   tryUse(): boolean {
-    if (this.phase === "seek" && this.near(this.factory.crate)) {
+    if (this.phase === "seek" && this.inRange(this.factory.crateHome.x, this.factory.crateHome.z, PICK_RANGE)) {
       this.pickUp();
       return true;
     }
-    if (this.phase === "carry" && this.near(this.factory.dropZone)) {
+    if (this.phase === "carry" && this.inRange(this.factory.dropPos.x, this.factory.dropPos.z, DROP_RANGE)) {
       this.place();
       return true;
     }
@@ -66,18 +69,17 @@ export class Mission {
     crate.scale.setScalar(1);
     crate.rotation.set(0, 0.15, 0);
     crate.position.copy(this.factory.dropPos);
-    crate.position.y = 0.14;
+    crate.position.y = 0.16;
     this.factory.group.add(crate);
     this.player.carrying = false;
     this.phase = "done";
   }
 
-  private near(obj: THREE.Object3D): boolean {
-    const range = obj === this.factory.dropZone ? DROP_RANGE : PICK_RANGE;
-    const pos = new THREE.Vector3();
-    obj.getWorldPosition(pos);
-    const dx = pos.x - this.player.position.x;
-    const dz = pos.z - this.player.position.z;
-    return Math.hypot(dx, dz) < range;
+  private distanceTo(x: number, z: number): number {
+    return Math.hypot(x - this.player.position.x, z - this.player.position.z);
+  }
+
+  private inRange(x: number, z: number, range: number): boolean {
+    return this.distanceTo(x, z) < range;
   }
 }

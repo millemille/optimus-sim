@@ -366,8 +366,8 @@ export class Factory {
       [-1, 1],
       [1, 1],
     ]) {
-      const stake = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.62, 0.07), postMat);
-      stake.position.set(sx * 0.78, 0.31, sz * 0.78);
+      const stake = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.05, 0.08), postMat);
+      stake.position.set(sx * 0.82, 0.52, sz * 0.82);
       stake.castShadow = true;
       g.add(stake);
     }
