@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { createRobotMaterials, type RobotMaterials } from "./materials.ts";
 
-const HIP_Y = 0.88;
+const HIP_Y = 0.95;
 
 export class Optimus {
   readonly root = new THREE.Group();
@@ -215,13 +215,13 @@ export class Optimus {
     head.position.set(0, 0.58, 0.02);
     this.chest.add(head);
 
-    const skull = this.mesh(new THREE.SphereGeometry(0.108, 36, 28), this.mats.skull);
-    skull.scale.set(0.84, 1.08, 0.96);
-    skull.position.set(0, 0.012, -0.006);
+    const skull = this.mesh(new THREE.SphereGeometry(0.112, 36, 28), this.mats.skull);
+    skull.scale.set(0.86, 1.1, 1.02);
+    skull.position.set(0, 0.01, -0.012);
     head.add(skull);
 
-    const face = this.panel(0.15, 0.17, 0.032, this.mats.visor, 0.07);
-    face.position.set(0, 0.0, 0.086);
+    const face = this.panel(0.155, 0.175, 0.018, this.mats.visor, 0.04);
+    face.position.set(0, 0.002, 0.09);
     head.add(face);
 
     const wrap = this.mesh(
