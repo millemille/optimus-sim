@@ -202,8 +202,9 @@ export class Optimus {
 
     const pauldron = this.mesh(createPauldron(), this.mats.white);
     pauldron.name = side < 0 ? "pauldronL" : "pauldronR";
-    pauldron.rotation.z = side * 0.12;
-    pauldron.position.set(side * 0.024, -0.038, 0);
+    pauldron.rotation.z = side * 0.72;
+    pauldron.rotation.x = 0.08;
+    pauldron.position.set(side * 0.032, -0.018, 0.004);
     shoulder.add(pauldron);
 
     const socket = this.mesh(new THREE.SphereGeometry(0.012, 8, 6), this.mats.joint);
@@ -214,7 +215,7 @@ export class Optimus {
     upper.position.set(side * 0.03, -0.038, 0);
     shoulder.add(upper);
 
-    const housing = this.mesh(createLimbShell(0.195, 0.05, 0.042, 0.03), this.mats.white);
+    const housing = this.mesh(createLimbShell(0.195, 0.052, 0.044, 0.034), this.mats.white);
     housing.position.y = -0.028;
     upper.add(housing);
 
@@ -249,14 +250,14 @@ export class Optimus {
 
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
-    g.rotation.y = side * 0.7;
+    g.rotation.y = side * 0.12;
 
-    const palm = this.panel(0.062, 0.07, 0.022, this.mats.matte, 0.007);
-    palm.position.y = -0.028;
+    const palm = this.panel(0.068, 0.078, 0.02, this.mats.matte, 0.008);
+    palm.position.y = -0.03;
     g.add(palm);
 
-    const plate = this.panel(0.058, 0.056, 0.012, this.mats.white, 0.004);
-    plate.position.set(0, -0.01, 0.016);
+    const plate = this.panel(0.066, 0.072, 0.014, this.mats.white, 0.006);
+    plate.position.set(0, -0.018, 0.014);
     g.add(plate);
 
     const xs = [-0.022, -0.008, 0.007, 0.021];
@@ -296,7 +297,7 @@ export class Optimus {
 
   private leg(side: number): THREE.Group {
     const hip = new THREE.Group();
-    hip.position.set(side * 0.088, -0.028, 0);
+    hip.position.set(side * 0.1, -0.028, 0);
     this.hips.add(hip);
 
     const ball = this.mesh(new THREE.SphereGeometry(0.028, 12, 10), this.mats.joint);
@@ -310,7 +311,7 @@ export class Optimus {
     thigh.position.y = -0.022;
     hip.add(thigh);
 
-    const tHousing = this.mesh(createLimbShell(0.36, 0.06, 0.048, 0.034), this.mats.white);
+    const tHousing = this.mesh(createLimbShell(0.36, 0.072, 0.058, 0.07), this.mats.white);
     tHousing.position.y = -0.012;
     thigh.add(tHousing);
 
@@ -322,8 +323,8 @@ export class Optimus {
     const axle = this.mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.072, 12), this.mats.joint);
     axle.rotation.z = Math.PI / 2;
     knee.add(axle);
-    for (const x of [-0.034, 0.034]) {
-      const disk = this.mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.01, 22), this.mats.white);
+    for (const x of [-0.04, 0.04]) {
+      const disk = this.mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.01, 22), this.mats.white);
       disk.rotation.z = Math.PI / 2;
       disk.position.x = x;
       knee.add(disk);
@@ -333,7 +334,7 @@ export class Optimus {
     shin.position.y = -0.022;
     knee.add(shin);
 
-    const sHousing = this.mesh(createLimbShell(0.38, 0.05, 0.04, 0.028), this.mats.white);
+    const sHousing = this.mesh(createLimbShell(0.38, 0.058, 0.046, 0.055), this.mats.white);
     sHousing.position.y = -0.01;
     shin.add(sHousing);
 

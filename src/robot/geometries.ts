@@ -87,43 +87,17 @@ export function createPecShell(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Shoulder shell that dumps down onto the upper arm. */
+/** Rounded shoulder cap that dumps onto the upper arm — not a vertical box. */
 export function createPauldron(): THREE.BufferGeometry {
-  const radial = 26;
-  const rings = 10;
-  const cols = radial + 1;
-  const positions: number[] = [];
-  const indices: number[] = [];
-
-  for (let i = 0; i <= rings; i += 1) {
-    const t = i / rings;
-    const y = -t * 0.1;
-    const rx = 0.078 - t * 0.022;
-    const rz = 0.062 - t * 0.022;
-    for (let j = 0; j <= radial; j += 1) {
-      const a = (j / radial) * Math.PI * 2;
-      const x = rx * Math.cos(a);
-      let z = rz * Math.sin(a);
-      if (z < 0) z *= 0.6;
-      let yy = y;
-      if (t < 0.35) yy += (1 - t / 0.35) * 0.014 * Math.max(0, Math.sin(a));
-      positions.push(x, yy, z);
-    }
+  const geo = new THREE.SphereGeometry(1, 28, 18, 0, Math.PI * 2, 0, Math.PI * 0.62);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const x = pos.getX(i) * 0.088;
+    const y = pos.getY(i) * 0.048;
+    const z = pos.getZ(i) * 0.078;
+    pos.setXYZ(i, x, y, z);
   }
-
-  for (let i = 0; i < rings; i += 1) {
-    for (let j = 0; j < radial; j += 1) {
-      const a = i * cols + j;
-      const b = a + 1;
-      const c = a + cols;
-      const d = c + 1;
-      indices.push(a, c, b, b, c, d);
-    }
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
+  pos.needsUpdate = true;
   geo.computeVertexNormals();
   return geo;
 }
