@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
-  createFingerVolume,
   createKneeCap,
   createLimbShell,
   createPalm,
@@ -146,21 +145,12 @@ export class Optimus {
   }
 
   private buildPelvis(): void {
-    const core = this.mesh(new THREE.CylinderGeometry(0.062, 0.07, 0.068, 16), this.mats.matte);
+    const core = this.mesh(new THREE.CylinderGeometry(0.07, 0.078, 0.074, 16), this.mats.matte);
     this.hips.add(core);
 
-    const shell = this.lathe(
-      [
-        [0.038, -0.02],
-        [0.058, -0.016],
-        [0.066, 0.0],
-        [0.06, 0.016],
-        [0.04, 0.024],
-      ],
-      this.mats.white,
-      0.3,
-    );
-    this.hips.add(shell);
+    const plate = this.panel(0.068, 0.036, 0.048, this.mats.white, 0.012);
+    plate.position.set(0, 0.006, 0.028);
+    this.hips.add(plate);
 
     for (const side of [-1, 1]) {
       const motor = this.mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.07, 12), this.mats.actuator);
@@ -177,14 +167,14 @@ export class Optimus {
     pecs.position.z = 0.006;
     this.chest.add(pecs);
 
-    const waist = this.mesh(new THREE.CylinderGeometry(0.055, 0.072, 0.09, 16), this.mats.matte);
-    waist.position.y = 0.03;
+    const waist = this.mesh(new THREE.CylinderGeometry(0.082, 0.098, 0.12, 18), this.mats.matte);
+    waist.position.y = 0.028;
     this.chest.add(waist);
 
-    for (let i = 0; i < 4; i += 1) {
-      const ring = this.mesh(new THREE.TorusGeometry(0.062 - i * 0.004, 0.009, 8, 20), this.mats.matte);
+    for (let i = 0; i < 5; i += 1) {
+      const ring = this.mesh(new THREE.TorusGeometry(0.09 - i * 0.004, 0.01, 8, 20), this.mats.matte);
       ring.rotation.x = Math.PI / 2;
-      ring.position.y = 0.01 + i * 0.02;
+      ring.position.y = -0.012 + i * 0.022;
       this.chest.add(ring);
     }
   }
@@ -257,40 +247,32 @@ export class Optimus {
     const g = new THREE.Group();
 
     const palm = this.mesh(createPalm(), this.mats.matte);
-    palm.position.set(0, -0.028, -0.002);
+    palm.position.set(0, -0.034, 0);
     g.add(palm);
 
     const dorsal = this.mesh(createPalm(), this.mats.white);
-    dorsal.scale.set(0.9, 0.7, 0.38);
-    dorsal.position.set(0, -0.024, 0.016);
+    dorsal.scale.set(0.88, 0.78, 0.42);
+    dorsal.position.set(0, -0.03, 0.018);
     g.add(dorsal);
 
     const digits = [
-      { x: -0.032, len: 0.078, r: 0.0162, spread: 0.2, curl: 0.28 },
-      { x: -0.011, len: 0.092, r: 0.0174, spread: 0.06, curl: 0.2 },
-      { x: 0.011, len: 0.088, r: 0.0168, spread: -0.06, curl: 0.22 },
-      { x: 0.03, len: 0.072, r: 0.0152, spread: -0.22, curl: 0.32 },
+      { x: -0.03, len: 0.046, r: 0.017, spread: 0.18, curl: 0.32 },
+      { x: -0.01, len: 0.056, r: 0.0185, spread: 0.05, curl: 0.24 },
+      { x: 0.01, len: 0.054, r: 0.018, spread: -0.05, curl: 0.26 },
+      { x: 0.028, len: 0.044, r: 0.016, spread: -0.2, curl: 0.36 },
     ];
     for (const d of digits) {
-      const core = this.mesh(createFingerVolume(d.len, d.r * 0.62), this.mats.matte);
-      core.position.set(d.x, -0.054, 0.004);
-      core.rotation.z = d.spread;
-      core.rotation.x = d.curl;
-      core.rotation.y = d.x * 1.2;
-      g.add(core);
-      const f = this.mesh(createFingerVolume(d.len * 0.96, d.r), this.mats.white);
-      f.position.set(d.x, -0.054, 0.012);
+      const f = this.mesh(new THREE.CapsuleGeometry(d.r, d.len, 6, 10), this.mats.white);
+      f.position.set(d.x, -0.072, 0.01);
       f.rotation.z = d.spread;
       f.rotation.x = d.curl;
-      f.rotation.y = d.x * 1.2;
       g.add(f);
     }
 
-    const thumb = this.mesh(createFingerVolume(0.056, 0.015), this.mats.white);
-    thumb.position.set(side * 0.04, -0.006, 0.012);
-    thumb.rotation.z = side * -0.88;
-    thumb.rotation.x = 0.58;
-    thumb.rotation.y = side * 0.32;
+    const thumb = this.mesh(new THREE.CapsuleGeometry(0.016, 0.034, 6, 10), this.mats.white);
+    thumb.position.set(side * 0.038, -0.018, 0.014);
+    thumb.rotation.z = side * -0.95;
+    thumb.rotation.x = 0.7;
     g.add(thumb);
     return g;
   }
@@ -352,13 +334,6 @@ export class Optimus {
     ankle.add(toe);
 
     return hip;
-  }
-
-  private lathe(profile: Array<[number, number]>, mat: THREE.Material, zScale: number): THREE.Mesh {
-    const pts = profile.map(([r, y]) => new THREE.Vector2(r, y));
-    const mesh = this.mesh(new THREE.LatheGeometry(pts, 40), mat);
-    mesh.scale.z = zScale;
-    return mesh;
   }
 
   private bellows(parent: THREE.Group, radius: number, count: number, spacing: number): void {

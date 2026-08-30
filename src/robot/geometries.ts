@@ -106,16 +106,16 @@ function smoothstep(e0: number, e1: number, x: number): number {
 }
 
 /**
- * Athletic vest. Pec body stays wide. Each deltoid is a circle:
- * widest at the equator (~0.40), top is inset and not outboard.
- * Top hem follows that circle so the rim cannot kick up into a wing.
+ * Torso, not a T-bar. Center is a pec V. Outer is a deltoid that
+ * dumps down the arm. Widest at mid-shoulder (~0.40).
  */
 function vestSurf(ang: number, v: number): [number, number, number] {
-  const a = ang / 2.15;
-  const yDel = 0.255;
+  const a = ang / 2.25;
+  const outer = smoothstep(0.22, 0.68, Math.abs(a));
+  const yDel = 0.252;
   const xDel = 0.314;
-  const rDel = 0.088;
-  const collar = 0.268;
+  const rDel = 0.086;
+  const collar = 0.274;
 
   const xApprox = Math.sin(ang) * 0.4;
   const dx = Math.abs(xApprox) - xDel;
@@ -123,44 +123,49 @@ function vestSurf(ang: number, v: number): [number, number, number] {
   if (dx * dx < rDel * rDel) {
     yTop = Math.max(collar, yDel + Math.sqrt(rDel * rDel - dx * dx));
   }
-  if (Math.abs(a) > 0.7) {
-    const o = (Math.abs(a) - 0.7) / 0.3;
-    yTop -= o * o * 0.07;
+  if (Math.abs(a) > 0.72) {
+    const o = (Math.abs(a) - 0.72) / 0.28;
+    yTop -= o * o * 0.055;
   }
 
-  const yBot = 0.052 + 0.016 * a * a;
+  const yBot = 0.058 - outer * 0.125;
   const y = yBot + v * (yTop - yBot);
 
-  const pecW = 0.16 + smoothstep(0.052, 0.22, y) * 0.18;
+  const pecW = 0.152 + smoothstep(0.04, 0.22, y) * 0.178;
   const dy = y - yDel;
-  let delW = 0;
-  if (dy * dy < rDel * rDel) {
-    delW = xDel + Math.sqrt(rDel * rDel - dy * dy);
+  let sleeveW: number;
+  if (y >= yDel - 0.015 && dy * dy < rDel * rDel) {
+    sleeveW = xDel + Math.sqrt(Math.max(0, rDel * rDel - dy * dy));
+  } else if (y < yDel) {
+    sleeveW = 0.198 + smoothstep(-0.07, yDel, y) * 0.202;
+  } else {
+    sleeveW = 0.3;
   }
-  let hw = Math.max(pecW, delW);
+  let hw = pecW + (Math.max(sleeveW, pecW) - pecW) * outer;
 
-  if (y > 0.248 && Math.abs(a) < 0.3) {
+  if (y > 0.248 && Math.abs(a) < 0.28) {
     const t = clamp01((y - 0.248) / 0.07);
-    const c = 1 - Math.abs(a) / 0.3;
-    hw -= t * t * c * c * 0.1;
-    hw = Math.max(0.085, hw);
+    const c = 1 - Math.abs(a) / 0.28;
+    hw -= t * t * c * c * 0.09;
+    hw = Math.max(0.08, hw);
   }
 
   const pec =
-    Math.exp(-((Math.abs(a) - 0.28) ** 2) / 0.1) * Math.exp(-((v - 0.42) ** 2) / 0.14);
-  const sternum = Math.exp(-(a * a) / 0.028) * 0.014 * (1 - v * 0.4);
-  let hz = 0.044 + pec * 0.07 - sternum;
-  hz *= 0.5 + 0.5 * Math.sin(Math.max(0.1, v) * Math.PI);
+    Math.exp(-((Math.abs(a) - 0.26) ** 2) / 0.11) * Math.exp(-((v - 0.55) ** 2) / 0.16);
+  const sternum = Math.exp(-(a * a) / 0.03) * 0.012 * (1 - v * 0.35);
+  let hz = 0.04 + pec * 0.07 - sternum;
+  hz *= 0.48 + 0.52 * Math.sin(Math.max(0.08, v) * Math.PI);
+  hz *= 1 - outer * 0.28;
 
-  const wrap = Math.max(0.18, Math.cos(ang * 0.36));
+  const wrap = Math.max(0.16, Math.cos(ang * 0.34));
   return [Math.sin(ang) * hw, y, hz * wrap];
 }
 
 export function createPecShell(): THREE.BufferGeometry {
   const nu = 64;
   const nv = 44;
-  const a0 = -2.15;
-  const a1 = 2.15;
+  const a0 = -2.25;
+  const a1 = 2.25;
   const cols = nu + 1;
   const positions: number[] = [];
 
@@ -265,9 +270,9 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
     const quad = Math.exp(-(((t - 0.26) / 0.22) ** 2));
     rings.push({
       y: -t * length,
-      rx: 0.082 + quad * 0.016 - t * 0.012,
-      rzFront: 0.12 + quad * 0.05 - t * 0.014,
-      rzBack: 0.068 + quad * 0.022 - t * 0.01,
+      rx: 0.08 + quad * 0.014 - t * 0.01,
+      rzFront: 0.138 + quad * 0.058 - t * 0.016,
+      rzBack: 0.072 + quad * 0.02 - t * 0.01,
       ridge: 0.003 * quad,
       lip: i === 0 || i === steps ? 0.92 : 1,
       power: 0.42,
@@ -313,30 +318,10 @@ export function createKneeCap(): THREE.BufferGeometry {
   return geo;
 }
 
-/** One finger with knuckle volume and a pad tip. Not a plate slat. */
-export function createFingerVolume(length: number, radius: number): THREE.BufferGeometry {
-  const r = radius;
-  const profile = [
-    new THREE.Vector2(0.0, 0.0),
-    new THREE.Vector2(r * 0.88, 0.04),
-    new THREE.Vector2(r * 1.12, 0.2),
-    new THREE.Vector2(r * 0.96, 0.36),
-    new THREE.Vector2(r * 1.1, 0.52),
-    new THREE.Vector2(r * 0.92, 0.7),
-    new THREE.Vector2(r * 0.72, 0.86),
-    new THREE.Vector2(r * 0.42, 0.96),
-    new THREE.Vector2(0.0, 1.0),
-  ];
-  const geo = new THREE.LatheGeometry(profile, 22);
-  geo.scale(1.08, -length, 0.92);
-  geo.computeVertexNormals();
-  return geo;
-}
-
-/** Rounded palm you can read from across the room. */
+/** Rounded palm mass. Not a wrist sphere with prongs hanging off it. */
 export function createPalm(): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(0.044, 22, 18);
-  geo.scale(1.42, 1.08, 0.68);
+  const geo = new THREE.SphereGeometry(0.04, 22, 16);
+  geo.scale(1.48, 1.22, 0.74);
   geo.computeVertexNormals();
   return geo;
 }
