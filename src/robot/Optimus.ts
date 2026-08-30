@@ -202,12 +202,12 @@ export class Optimus {
 
     const pauldron = this.mesh(createPauldron(), this.mats.white);
     pauldron.name = side < 0 ? "pauldronL" : "pauldronR";
-    pauldron.rotation.z = side * 0.18;
-    pauldron.position.set(side * 0.028, -0.03, 0.002);
+    pauldron.rotation.z = side * 0.12;
+    pauldron.position.set(side * 0.024, -0.038, 0);
     shoulder.add(pauldron);
 
-    const socket = this.mesh(new THREE.SphereGeometry(0.018, 10, 8), this.mats.joint);
-    socket.position.set(side * 0.03, -0.028, 0);
+    const socket = this.mesh(new THREE.SphereGeometry(0.012, 8, 6), this.mats.joint);
+    socket.position.set(side * 0.028, -0.032, 0);
     shoulder.add(socket);
 
     const upper = new THREE.Group();
@@ -254,8 +254,8 @@ export class Optimus {
     palm.position.y = -0.028;
     g.add(palm);
 
-    const plate = this.panel(0.058, 0.052, 0.01, this.mats.white, 0.004);
-    plate.position.set(0, -0.012, 0.016);
+    const plate = this.panel(0.06, 0.058, 0.012, this.mats.white, 0.004);
+    plate.position.set(0, -0.01, 0.018);
     g.add(plate);
 
     const xs = [-0.022, -0.008, 0.007, 0.021];

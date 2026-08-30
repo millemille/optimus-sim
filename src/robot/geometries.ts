@@ -3,26 +3,26 @@ import * as THREE from "three";
 /** Motorcycle-visor skull: wider than tall, one black mesh, no sockets. */
 export function createVisorSkull(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.0, -0.072),
-    new THREE.Vector2(0.03, -0.07),
-    new THREE.Vector2(0.062, -0.06),
-    new THREE.Vector2(0.088, -0.042),
-    new THREE.Vector2(0.104, -0.02),
-    new THREE.Vector2(0.112, 0.002),
-    new THREE.Vector2(0.114, 0.024),
-    new THREE.Vector2(0.108, 0.046),
-    new THREE.Vector2(0.092, 0.064),
-    new THREE.Vector2(0.068, 0.078),
-    new THREE.Vector2(0.036, 0.086),
-    new THREE.Vector2(0.0, 0.09),
+    new THREE.Vector2(0.0, -0.064),
+    new THREE.Vector2(0.034, -0.062),
+    new THREE.Vector2(0.068, -0.052),
+    new THREE.Vector2(0.096, -0.034),
+    new THREE.Vector2(0.114, -0.012),
+    new THREE.Vector2(0.122, 0.01),
+    new THREE.Vector2(0.12, 0.03),
+    new THREE.Vector2(0.108, 0.048),
+    new THREE.Vector2(0.088, 0.062),
+    new THREE.Vector2(0.058, 0.072),
+    new THREE.Vector2(0.028, 0.078),
+    new THREE.Vector2(0.0, 0.082),
   ];
   const geo = new THREE.LatheGeometry(profile, 64);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
     const z = pos.getZ(i);
-    pos.setX(i, x * 1.08);
-    pos.setZ(i, z > 0 ? z * 0.5 : z * 0.64);
+    pos.setX(i, x * 1.12);
+    pos.setZ(i, z > 0 ? z * 0.42 : z * 0.5);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -54,14 +54,14 @@ export function createPecShell(): THREE.BufferGeometry {
       const cos = Math.cos(a);
       const sin = Math.sin(a);
       let r = rMax;
-      if (t > 0.58) {
-        const lift = (t - 0.58) / 0.42;
-        const back = Math.max(0, -sin);
-        r *= Math.max(0.02, 1 - lift * back * 1.05);
+      if (t > 0.48) {
+        const lift = (t - 0.48) / 0.52;
+        const frontness = Math.max(0, sin);
+        r *= (1 - lift) + lift * frontness;
       }
       const x = r * cos;
-      let z = r * sin * 0.26;
-      if (z > 0) z *= 0.82;
+      let z = r * sin * 0.2;
+      if (z > 0) z *= 0.78;
       positions.push(x, y, z);
     }
   }
