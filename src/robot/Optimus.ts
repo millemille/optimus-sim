@@ -2,7 +2,8 @@ import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
   createDeltoid,
-  createDorsalPlate,
+  createGlove,
+  createKneeCap,
   createLimbShell,
   createPecShell,
   createShinShell,
@@ -205,13 +206,13 @@ export class Optimus {
 
   private arm(side: number): THREE.Group {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.232, 0.252, 0.02);
+    shoulder.position.set(side * 0.246, 0.238, 0.018);
     this.chest.add(shoulder);
 
     const deltoid = this.mesh(createDeltoid(), this.mats.white);
     deltoid.name = side < 0 ? "pauldronL" : "pauldronR";
     if (side < 0) deltoid.scale.x = -1;
-    deltoid.position.set(side * 0.028, 0.014, 0.016);
+    deltoid.position.set(side * 0.016, -0.012, 0.012);
     shoulder.add(deltoid);
 
     const socket = this.mesh(new THREE.SphereGeometry(0.012, 8, 6), this.mats.joint);
@@ -257,42 +258,15 @@ export class Optimus {
 
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
-    g.rotation.y = side * 0.12;
+    g.rotation.y = side * 0.06;
 
-    const palm = this.panel(0.1, 0.1, 0.018, this.mats.matte, 0.012);
+    const palm = this.panel(0.07, 0.086, 0.016, this.mats.matte, 0.01);
     palm.position.set(0, -0.052, -0.01);
     g.add(palm);
 
-    const dorsal = this.mesh(createDorsalPlate(), this.mats.white);
-    dorsal.position.set(0, 0.004, 0.01);
-    g.add(dorsal);
-
-    const digits = [
-      { x: -0.034, len: 0.078, w: 0.022, z: 0.014 },
-      { x: -0.011, len: 0.09, w: 0.024, z: 0.016 },
-      { x: 0.012, len: 0.084, w: 0.023, z: 0.015 },
-      { x: 0.034, len: 0.07, w: 0.02, z: 0.013 },
-    ];
-    for (const d of digits) {
-      g.add(this.digit(d.x, -0.1, d.z, d.len, d.w));
-    }
-
-    const thumb = this.digit(side * 0.048, -0.028, 0.018, 0.058, 0.022);
-    thumb.rotation.z = side * -0.68;
-    thumb.rotation.x = -0.22;
-    g.add(thumb);
-    return g;
-  }
-
-  private digit(x: number, y: number, z: number, len: number, w: number): THREE.Group {
-    const g = new THREE.Group();
-    g.position.set(x, y, z);
-    const body = this.panel(w, len * 0.9, w * 0.82, this.mats.white, 0.007);
-    body.position.set(0, -len * 0.42, 0.004);
-    g.add(body);
-    const tip = this.panel(w * 0.55, len * 0.07, w * 0.48, this.mats.matte, 0.002);
-    tip.position.set(0, -len * 0.9, 0.002);
-    g.add(tip);
+    const glove = this.mesh(createGlove(side), this.mats.white);
+    glove.position.set(0, -0.006, 0.01);
+    g.add(glove);
     return g;
   }
 
@@ -325,11 +299,14 @@ export class Optimus {
     axle.rotation.z = Math.PI / 2;
     knee.add(axle);
     for (const x of [-0.04, 0.04]) {
-      const disk = this.mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.01, 22), this.mats.white);
+      const disk = this.mesh(new THREE.CylinderGeometry(0.044, 0.044, 0.01, 22), this.mats.joint);
       disk.rotation.z = Math.PI / 2;
       disk.position.x = x;
       knee.add(disk);
     }
+    const cap = this.mesh(createKneeCap(), this.mats.white);
+    cap.position.set(0, 0.006, 0.042);
+    knee.add(cap);
 
     const shin = new THREE.Group();
     shin.position.y = -0.022;
