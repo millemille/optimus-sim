@@ -87,17 +87,41 @@ export function createPecShell(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Rounded shoulder cap that dumps onto the upper arm — not a vertical box. */
-export function createPauldron(): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(1, 28, 18, 0, Math.PI * 2, 0, Math.PI * 0.62);
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i += 1) {
-    const x = pos.getX(i) * 0.088;
-    const y = pos.getY(i) * 0.048;
-    const z = pos.getZ(i) * 0.078;
-    pos.setXYZ(i, x, y, z);
+/** Deltoid + upper-arm start as one rounded mass. */
+export function createDeltoid(): THREE.BufferGeometry {
+  const radial = 28;
+  const rings = 12;
+  const cols = radial + 1;
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  for (let i = 0; i <= rings; i += 1) {
+    const t = i / rings;
+    const y = 0.02 - t * 0.14;
+    const rx = 0.082 - t * 0.03;
+    const rz = 0.07 - t * 0.028;
+    for (let j = 0; j <= radial; j += 1) {
+      const a = (j / radial) * Math.PI * 2;
+      const x = rx * Math.cos(a);
+      let z = rz * Math.sin(a);
+      if (z < 0) z *= 0.62;
+      positions.push(x, y, z);
+    }
   }
-  pos.needsUpdate = true;
+
+  for (let i = 0; i < rings; i += 1) {
+    for (let j = 0; j < radial; j += 1) {
+      const a = i * cols + j;
+      const b = a + 1;
+      const c = a + cols;
+      const d = c + 1;
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
   geo.computeVertexNormals();
   return geo;
 }
@@ -125,7 +149,9 @@ export function createLimbShell(
       const a = (j / radial) * Math.PI * 2;
       const x = rx * Math.cos(a);
       let z = rzi * Math.sin(a);
-      if (z < 0) z *= 0.58;
+      const mid = 1 - Math.abs(t - 0.38) * 1.4;
+      if (z > 0) z *= 1.25 + Math.max(0, mid) * 0.2;
+      else z *= 0.52;
       positions.push(x, y, z);
     }
   }
