@@ -110,26 +110,26 @@ export function createPecShell(): THREE.BufferGeometry {
   for (let iy = 0; iy <= segsV; iy += 1) {
     const t = iy / segsV;
     const y0 = t * 0.29;
-    let rx = 0.1;
-    let rzF = 0.055;
-    let rzB = 0.038;
+    let rx = 0.12;
+    let rzF = 0.07;
+    let rzB = 0.04;
     if (t < 0.14) {
-      rx = 0.1 + (t / 0.14) * 0.055;
-      rzF = 0.055 + (t / 0.14) * 0.03;
-      rzB = 0.038;
+      rx = 0.12 + (t / 0.14) * 0.06;
+      rzF = 0.07 + (t / 0.14) * 0.035;
+      rzB = 0.04;
     } else if (t < 0.48) {
-      rx = 0.155 + ((t - 0.14) / 0.34) * 0.04;
-      rzF = 0.085 + ((t - 0.14) / 0.34) * 0.028;
+      rx = 0.18 + ((t - 0.14) / 0.34) * 0.05;
+      rzF = 0.105 + ((t - 0.14) / 0.34) * 0.03;
       rzB = 0.042;
-    } else if (t < 0.8) {
-      rx = 0.195 + ((t - 0.48) / 0.32) * 0.03;
-      rzF = 0.113;
-      rzB = 0.028;
+    } else if (t < 0.82) {
+      rx = 0.23 + ((t - 0.48) / 0.34) * 0.04;
+      rzF = 0.135;
+      rzB = 0.03;
     } else {
-      const k = (t - 0.8) / 0.2;
-      rx = 0.225 - k * 0.05;
-      rzF = 0.1 - k * 0.018;
-      rzB = 0.028 * (1 - k * 0.92);
+      const k = (t - 0.82) / 0.18;
+      rx = 0.27 - k * 0.035;
+      rzF = 0.12 - k * 0.02;
+      rzB = 0.03 * (1 - k * 0.92);
     }
 
     for (let ix = 0; ix <= segsU; ix += 1) {
@@ -176,12 +176,12 @@ export function createPecShell(): THREE.BufferGeometry {
 /** Pauldron wrap that dumps onto the upper arm. Inner face is scooped. */
 export function createDeltoid(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0.062, rx: 0.092, rzFront: 0.088, rzBack: 0.036, lip: 0.9 },
-    { y: 0.04, rx: 0.098, rzFront: 0.094, rzBack: 0.038, ridge: 0.008 },
-    { y: 0.01, rx: 0.09, rzFront: 0.086, rzBack: 0.032, ridge: 0.006 },
-    { y: -0.04, rx: 0.078, rzFront: 0.074, rzBack: 0.028 },
-    { y: -0.1, rx: 0.064, rzFront: 0.06, rzBack: 0.024 },
-    { y: -0.168, rx: 0.05, rzFront: 0.048, rzBack: 0.02, lip: 0.9 },
+    { y: 0.07, rx: 0.118, rzFront: 0.11, rzBack: 0.04, lip: 0.9 },
+    { y: 0.042, rx: 0.125, rzFront: 0.118, rzBack: 0.042, ridge: 0.01 },
+    { y: 0.008, rx: 0.112, rzFront: 0.105, rzBack: 0.034, ridge: 0.008 },
+    { y: -0.05, rx: 0.092, rzFront: 0.088, rzBack: 0.03 },
+    { y: -0.12, rx: 0.072, rzFront: 0.068, rzBack: 0.024 },
+    { y: -0.2, rx: 0.054, rzFront: 0.05, rzBack: 0.02, lip: 0.9 },
   ];
   const geo = loftArmor(rings, 40);
   const pos = geo.attributes.position;
@@ -226,8 +226,8 @@ export function createThighShell(length: number): THREE.BufferGeometry {
   for (let i = 0; i <= steps; i += 1) {
     const t = i / steps;
     const quad = Math.exp(-(((t - 0.32) / 0.22) ** 2));
-    const rx = 0.072 + quad * 0.022 - t * 0.014;
-    const rzF = 0.078 + quad * 0.05 - t * 0.012;
+    const rx = 0.09 + quad * 0.024 - t * 0.016;
+    const rzF = 0.1 + quad * 0.042 - t * 0.014;
     rings.push({
       y: -t * length,
       rx,
@@ -250,8 +250,8 @@ export function createShinShell(length: number): THREE.BufferGeometry {
     const ridge = Math.max(0, 1 - Math.abs(t - 0.38) * 1.8);
     rings.push({
       y: -t * length,
-      rx: 0.062 - t * 0.016,
-      rzFront: 0.072 - t * 0.018,
+      rx: 0.074 - t * 0.018,
+      rzFront: 0.09 - t * 0.02,
       rzBack: 0.024 - t * 0.004,
       ridge: 0.014 * ridge,
       lip: i === 0 || i === steps ? 0.9 : 1,
@@ -264,11 +264,11 @@ export function createShinShell(length: number): THREE.BufferGeometry {
 /** Back-of-hand plate only. Fingers attach at the knuckles. */
 export function createDorsalPlate(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0.008, rx: 0.03, rzFront: 0.01, rzBack: 0.005, lip: 0.92 },
-    { y: -0.02, rx: 0.036, rzFront: 0.012, rzBack: 0.006 },
-    { y: -0.05, rx: 0.042, rzFront: 0.014, rzBack: 0.006, ridge: 0.003 },
-    { y: -0.082, rx: 0.046, rzFront: 0.013, rzBack: 0.005, ridge: 0.004 },
-    { y: -0.092, rx: 0.044, rzFront: 0.011, rzBack: 0.004, lip: 0.9 },
+    { y: 0.01, rx: 0.038, rzFront: 0.014, rzBack: 0.006, lip: 0.92 },
+    { y: -0.025, rx: 0.048, rzFront: 0.016, rzBack: 0.007 },
+    { y: -0.058, rx: 0.056, rzFront: 0.018, rzBack: 0.007, ridge: 0.004 },
+    { y: -0.095, rx: 0.06, rzFront: 0.017, rzBack: 0.006, ridge: 0.005 },
+    { y: -0.108, rx: 0.058, rzFront: 0.014, rzBack: 0.005, lip: 0.9 },
   ];
   return loftArmor(rings, 24);
 }
