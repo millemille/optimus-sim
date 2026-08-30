@@ -126,18 +126,21 @@ function ellip(
  * Outer half-width is ~0.38, the v11 span, as rounded caps not a bar.
  */
 function torsoField(x: number, y: number, z: number): number {
-  const pec = ellip(x, y, z, 0, 0.172, 0.054, 0.242, 0.158, 0.126);
-  const waist = ellip(x, y, z, 0, 0.048, 0.03, 0.142, 0.076, 0.08);
-  const yoke = ellip(x, y, z, 0, 0.258, 0.036, 0.312, 0.06, 0.092);
-  const delL = ellip(x, y, z, -0.286, 0.258, 0.02, 0.116, 0.098, 0.098);
-  const delR = ellip(x, y, z, 0.286, 0.258, 0.02, 0.116, 0.098, 0.098);
-  let d = smin(pec, waist, 0.07);
-  d = smin(d, yoke, 0.06);
-  d = smin(d, smin(delL, delR, 0.05), 0.068);
+  const pec = ellip(x, y, z, 0, 0.168, 0.052, 0.255, 0.16, 0.124);
+  const waist = ellip(x, y, z, 0, 0.046, 0.03, 0.145, 0.078, 0.082);
+  const yoke = ellip(x, y, z, 0, 0.246, 0.034, 0.3, 0.074, 0.094);
+  const delL = ellip(x, y, z, -0.252, 0.242, 0.022, 0.148, 0.11, 0.108);
+  const delR = ellip(x, y, z, 0.252, 0.242, 0.022, 0.148, 0.11, 0.108);
+  const sleeveL = ellip(x, y, z, -0.292, 0.168, 0.014, 0.078, 0.105, 0.072);
+  const sleeveR = ellip(x, y, z, 0.292, 0.168, 0.014, 0.078, 0.105, 0.072);
+  let d = smin(pec, waist, 0.08);
+  d = smin(d, yoke, 0.082);
+  d = smin(d, smin(delL, delR, 0.08), 0.1);
+  d = smin(d, smin(sleeveL, sleeveR, 0.06), 0.075);
 
-  if (y > 0.3) {
-    const well = Math.hypot(x / 0.056, (z - 0.01) / 0.048) - 1;
-    d = smax(d, -well, 0.026);
+  if (y > 0.308) {
+    const well = Math.hypot(x / 0.054, (z - 0.01) / 0.046) - 1;
+    d = smax(d, -well, 0.03);
   }
   return d;
 }

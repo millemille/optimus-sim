@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
-  createDeltoid,
   createDorsalPlate,
   createKneeCap,
   createLimbShell,
@@ -209,12 +208,6 @@ export class Optimus {
     const shoulder = new THREE.Group();
     shoulder.position.set(side * 0.268, 0.248, 0.016);
     this.chest.add(shoulder);
-
-    const deltoid = this.mesh(createDeltoid(), this.mats.white);
-    deltoid.name = side < 0 ? "pauldronL" : "pauldronR";
-    if (side < 0) deltoid.scale.x = -1;
-    deltoid.position.set(side * 0.016, -0.055, 0.012);
-    shoulder.add(deltoid);
 
     const socket = this.mesh(new THREE.SphereGeometry(0.012, 8, 6), this.mats.joint);
     socket.position.set(side * 0.02, -0.04, 0);
