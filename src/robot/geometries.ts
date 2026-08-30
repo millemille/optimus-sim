@@ -97,9 +97,8 @@ function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
 }
 
 /**
- * Pectoral yoke that IS the shoulder. High rounded deltoid line, V-taper,
- * sternum cleft, armpit scoop at mid-height only. The top does not drop
- * at the sides — that shield taper is what made v10 a chest brick.
+ * Pectoral yoke that IS the shoulder. Width stays at the deltoid through
+ * the collar; only the neck notch tucks. Armpit scoops mid-height.
  */
 export function createPecShell(): THREE.BufferGeometry {
   const segsV = 32;
@@ -110,30 +109,29 @@ export function createPecShell(): THREE.BufferGeometry {
 
   for (let iy = 0; iy <= segsV; iy += 1) {
     const t = iy / segsV;
-    const y0 = t * 0.305;
-    let rx = 0.108;
-    let rzF = 0.07;
-    let rzB = 0.036;
-    if (t < 0.16) {
-      const k = t / 0.16;
-      rx = 0.108 + k * 0.052;
-      rzF = 0.07 + k * 0.04;
+    const y0 = t * 0.318;
+    let rx = 0.11;
+    let rzF = 0.078;
+    let rzB = 0.034;
+    if (t < 0.18) {
+      const k = t / 0.18;
+      rx = 0.11 + k * 0.06;
+      rzF = 0.078 + k * 0.05;
+      rzB = 0.034;
+    } else if (t < 0.5) {
+      const k = (t - 0.18) / 0.32;
+      rx = 0.17 + k * 0.07;
+      rzF = 0.128 + k * 0.05;
       rzB = 0.036;
-    } else if (t < 0.48) {
-      const k = (t - 0.16) / 0.32;
-      rx = 0.16 + k * 0.058;
-      rzF = 0.11 + k * 0.04;
-      rzB = 0.038;
-    } else if (t < 0.84) {
-      const k = (t - 0.48) / 0.36;
-      rx = 0.218 + k * 0.102;
-      rzF = 0.15 - k * 0.016;
-      rzB = 0.03;
+    } else if (t < 0.78) {
+      const k = (t - 0.5) / 0.28;
+      rx = 0.24 + k * 0.12;
+      rzF = 0.178 - k * 0.012;
+      rzB = 0.028;
     } else {
-      const k = (t - 0.84) / 0.16;
-      rx = 0.32 - k * 0.068;
-      rzF = 0.134 - k * 0.018;
-      rzB = 0.028 * (1 - k * 0.9);
+      rx = 0.36;
+      rzF = 0.166;
+      rzB = 0.024;
     }
 
     for (let ix = 0; ix <= segsU; ix += 1) {
@@ -141,22 +139,26 @@ export function createPecShell(): THREE.BufferGeometry {
       const c = Math.cos(a);
       const s = Math.sin(a);
       let y = y0;
-      if (t > 0.1 && t < 0.6) {
-        const scoop = Math.sin(((t - 0.1) / 0.5) * Math.PI);
-        y -= Math.abs(c) ** 1.12 * scoop * 0.078;
+      if (t > 0.12 && t < 0.58) {
+        const scoop = Math.sin(((t - 0.12) / 0.46) * Math.PI);
+        y -= Math.abs(c) ** 1.05 * scoop * 0.09;
       }
-      if (t > 0.8) {
-        y -= Math.abs(c) ** 4.2 * (t - 0.8) * 0.045;
+      if (t > 0.86) {
+        y -= Math.abs(c) ** 5 * (t - 0.86) * 0.035;
       }
       let r = rx;
-      if (t > 0.72 && s < 0) {
-        r *= 1 - ((t - 0.72) / 0.28) * 0.88;
+      if (t > 0.86 && Math.abs(c) < 0.42) {
+        const notch = (0.42 - Math.abs(c)) / 0.42;
+        r *= 1 - notch * ((t - 0.86) / 0.14) * 0.55;
+      }
+      if (t > 0.7 && s < 0) {
+        r *= 1 - ((t - 0.7) / 0.3) * 0.9;
       }
       const x = r * c;
       let z: number;
       if (s >= 0) {
-        z = rzF * s ** 0.46;
-        z *= 1 - 0.24 * Math.exp(-(x * x) / 0.00115);
+        z = rzF * s ** 0.42;
+        z *= 1 - 0.26 * Math.exp(-(x * x) / 0.00105);
       } else {
         z = rzB * s;
       }
@@ -181,14 +183,14 @@ export function createPecShell(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Lower dump onto the upper arm only. The pec yoke already is the shoulder. */
+/** Sleeve that continues the pec onto the arm. Stays below the yoke line. */
 export function createDeltoid(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0.004, rx: 0.072, rzFront: 0.068, rzBack: 0.026, lip: 0.9 },
-    { y: -0.036, rx: 0.066, rzFront: 0.062, rzBack: 0.024, ridge: 0.005 },
-    { y: -0.09, rx: 0.056, rzFront: 0.052, rzBack: 0.02 },
-    { y: -0.15, rx: 0.048, rzFront: 0.044, rzBack: 0.018 },
-    { y: -0.22, rx: 0.042, rzFront: 0.038, rzBack: 0.016, lip: 0.88 },
+    { y: -0.02, rx: 0.058, rzFront: 0.056, rzBack: 0.022, lip: 0.9 },
+    { y: -0.06, rx: 0.054, rzFront: 0.052, rzBack: 0.02, ridge: 0.004 },
+    { y: -0.11, rx: 0.048, rzFront: 0.046, rzBack: 0.018 },
+    { y: -0.17, rx: 0.044, rzFront: 0.04, rzBack: 0.016 },
+    { y: -0.24, rx: 0.04, rzFront: 0.036, rzBack: 0.014, lip: 0.86 },
   ];
   const geo = loftArmor(rings, 40);
   const pos = geo.attributes.position;
@@ -234,7 +236,7 @@ export function createThighShell(length: number): THREE.BufferGeometry {
     const t = i / steps;
     const quad = Math.exp(-(((t - 0.3) / 0.2) ** 2));
     const rx = 0.088 + quad * 0.018 - t * 0.02;
-    const rzF = 0.132 + quad * 0.034 - t * 0.018;
+    const rzF = 0.148 + quad * 0.036 - t * 0.02;
     rings.push({
       y: -t * length,
       rx,
@@ -284,16 +286,24 @@ export function createKneeCap(): THREE.BufferGeometry {
 export function createGlove(side: number): THREE.BufferGeometry {
   const sx = side >= 0 ? 1 : -1;
   const shape = new THREE.Shape();
-  shape.moveTo(-0.038 * sx, 0.01);
-  shape.bezierCurveTo(-0.046 * sx, -0.028, -0.048 * sx, -0.078, -0.042 * sx, -0.122);
-  shape.quadraticCurveTo(-0.04 * sx, -0.148, -0.028 * sx, -0.16);
-  shape.quadraticCurveTo(-0.016 * sx, -0.176, -0.004 * sx, -0.182);
-  shape.quadraticCurveTo(0.01 * sx, -0.19, 0.02 * sx, -0.178);
-  shape.quadraticCurveTo(0.032 * sx, -0.164, 0.036 * sx, -0.138);
-  shape.quadraticCurveTo(0.04 * sx, -0.1, 0.044 * sx, -0.068);
-  shape.quadraticCurveTo(0.064 * sx, -0.074, 0.076 * sx, -0.092);
-  shape.quadraticCurveTo(0.084 * sx, -0.072, 0.07 * sx, -0.04);
-  shape.quadraticCurveTo(0.054 * sx, -0.01, 0.032 * sx, 0.006);
+  shape.moveTo(-0.04 * sx, 0.012);
+  shape.bezierCurveTo(-0.05 * sx, -0.03, -0.052 * sx, -0.08, -0.046 * sx, -0.118);
+  // pinky
+  shape.quadraticCurveTo(-0.044 * sx, -0.15, -0.034 * sx, -0.168);
+  shape.quadraticCurveTo(-0.03 * sx, -0.136, -0.022 * sx, -0.128);
+  // ring
+  shape.quadraticCurveTo(-0.016 * sx, -0.172, -0.008 * sx, -0.188);
+  shape.quadraticCurveTo(-0.002 * sx, -0.15, 0.004 * sx, -0.132);
+  // middle
+  shape.quadraticCurveTo(0.012 * sx, -0.176, 0.02 * sx, -0.194);
+  shape.quadraticCurveTo(0.026 * sx, -0.154, 0.03 * sx, -0.13);
+  // index
+  shape.quadraticCurveTo(0.038 * sx, -0.162, 0.044 * sx, -0.17);
+  shape.quadraticCurveTo(0.046 * sx, -0.132, 0.042 * sx, -0.1);
+  // thumb lobe
+  shape.quadraticCurveTo(0.05 * sx, -0.072, 0.074 * sx, -0.096);
+  shape.quadraticCurveTo(0.09 * sx, -0.078, 0.078 * sx, -0.042);
+  shape.quadraticCurveTo(0.058 * sx, -0.008, 0.03 * sx, 0.01);
   shape.closePath();
 
   const geo = new THREE.ExtrudeGeometry(shape, {

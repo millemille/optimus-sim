@@ -206,13 +206,13 @@ export class Optimus {
 
   private arm(side: number): THREE.Group {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.246, 0.238, 0.018);
+    shoulder.position.set(side * 0.258, 0.248, 0.02);
     this.chest.add(shoulder);
 
     const deltoid = this.mesh(createDeltoid(), this.mats.white);
     deltoid.name = side < 0 ? "pauldronL" : "pauldronR";
     if (side < 0) deltoid.scale.x = -1;
-    deltoid.position.set(side * 0.016, -0.012, 0.012);
+    deltoid.position.set(side * 0.01, -0.03, 0.01);
     shoulder.add(deltoid);
 
     const socket = this.mesh(new THREE.SphereGeometry(0.012, 8, 6), this.mats.joint);
