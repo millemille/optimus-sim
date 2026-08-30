@@ -2,12 +2,14 @@ import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
   createDeltoid,
-  createFingerPlate,
+  createFingerVolume,
   createKneeCap,
   createLimbShell,
   createMidriff,
   createPecShell,
   createShinShell,
+  createShoulderCap,
+  createThorax,
   createThighShell,
   createVisorSkull,
 } from "./geometries.ts";
@@ -160,15 +162,25 @@ export class Optimus {
   }
 
   private buildTorso(): void {
+    const thorax = this.mesh(createThorax(), this.mats.matte);
+    thorax.position.y = 0.02;
+    this.chest.add(thorax);
+
     const pecs = this.mesh(createPecShell(), this.mats.white);
     pecs.name = "pecShell";
-    pecs.position.y = 0.02;
-    pecs.position.z = 0.006;
+    pecs.position.y = 0.028;
+    pecs.position.z = 0.012;
     this.chest.add(pecs);
 
     const waist = this.mesh(createMidriff(), this.mats.matte);
     waist.position.y = 0.012;
     this.chest.add(waist);
+
+    for (const side of [-1, 1]) {
+      const cap = this.mesh(createShoulderCap(side), this.mats.white);
+      cap.position.set(side * 0.3, 0.228, 0.018);
+      this.chest.add(cap);
+    }
   }
 
   private buildNeck(): void {
@@ -246,33 +258,36 @@ export class Optimus {
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
 
-    const palm = this.panel(0.054, 0.034, 0.02, this.mats.matte, 0.01);
-    palm.position.set(0, -0.028, 0);
+    const palm = this.mesh(new THREE.SphereGeometry(0.028, 14, 12), this.mats.matte);
+    palm.scale.set(1.28, 0.95, 0.72);
+    palm.position.set(0, -0.028, 0.002);
     g.add(palm);
-    const dorsal = this.panel(0.046, 0.024, 0.008, this.mats.white, 0.008);
-    dorsal.position.set(0, -0.026, 0.012);
+    const dorsal = this.mesh(new THREE.SphereGeometry(0.022, 12, 10), this.mats.white);
+    dorsal.scale.set(1.2, 0.78, 0.42);
+    dorsal.position.set(0, -0.026, 0.016);
     g.add(dorsal);
 
-    const xs = [-0.022, -0.008, 0.008, 0.022];
-    const lens = [0.052, 0.062, 0.058, 0.048];
-    const fans = [-0.12, -0.04, 0.04, 0.14];
+    const xs = [-0.02, -0.007, 0.007, 0.02];
+    const lens = [0.048, 0.056, 0.052, 0.044];
+    const girths = [0.0086, 0.009, 0.0088, 0.0082];
+    const fans = [-0.08, -0.02, 0.025, 0.1];
     for (let i = 0; i < 4; i += 1) {
-      const knuckle = this.mesh(new THREE.SphereGeometry(0.0068, 8, 6), this.mats.joint);
-      knuckle.position.set(xs[i], -0.044, 0.004);
+      const knuckle = this.mesh(new THREE.SphereGeometry(0.0072, 8, 6), this.mats.joint);
+      knuckle.position.set(xs[i], -0.046, 0.006);
       g.add(knuckle);
-      const plate = this.mesh(createFingerPlate(lens[i], 0.014), this.mats.white);
-      plate.position.set(xs[i], -0.046, 0.008);
-      plate.rotation.z = fans[i];
-      plate.rotation.x = 0.16;
-      g.add(plate);
+      const pad = this.mesh(createFingerVolume(lens[i], girths[i]), this.mats.white);
+      pad.position.set(xs[i], -0.05, 0.01);
+      pad.rotation.z = fans[i];
+      pad.rotation.x = 0.22;
+      g.add(pad);
     }
 
-    const thumbKnuckle = this.mesh(new THREE.SphereGeometry(0.006, 8, 6), this.mats.joint);
-    thumbKnuckle.position.set(side * 0.028, -0.016, 0.006);
+    const thumbKnuckle = this.mesh(new THREE.SphereGeometry(0.0064, 8, 6), this.mats.joint);
+    thumbKnuckle.position.set(side * 0.026, -0.016, 0.008);
     g.add(thumbKnuckle);
-    const thumb = this.mesh(createFingerPlate(0.032, 0.011), this.mats.white);
-    thumb.position.set(side * 0.03, -0.018, 0.01);
-    thumb.rotation.set(0.55, side * 0.35, side * 0.95);
+    const thumb = this.mesh(createFingerVolume(0.03, 0.008), this.mats.white);
+    thumb.position.set(side * 0.028, -0.02, 0.012);
+    thumb.rotation.set(0.5, side * 0.32, side * 0.9);
     g.add(thumb);
     return g;
   }
@@ -293,8 +308,8 @@ export class Optimus {
     thigh.position.y = -0.022;
     hip.add(thigh);
 
-    const tHousing = this.mesh(createThighShell(0.365, side), this.mats.white);
-    tHousing.position.set(0, -0.01, 0.018);
+    const tHousing = this.mesh(createThighShell(0.352, side), this.mats.white);
+    tHousing.position.set(0, -0.028, 0.022);
     thigh.add(tHousing);
 
     const knee = new THREE.Group();

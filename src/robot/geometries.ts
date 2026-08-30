@@ -43,7 +43,11 @@ type ArmorRing = {
 };
 
 /** Open armor shell: paneled front, scooped back, hard lips, optional ridge. */
-function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
+function loftArmor(
+  rings: ArmorRing[],
+  segs = 36,
+  caps: "both" | "bottom" | "none" = "both",
+): THREE.BufferGeometry {
   const cols = segs + 1;
   const positions: number[] = [];
   const indices: number[] = [];
@@ -79,14 +83,23 @@ function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
     }
   }
 
-  const topCenter = positions.length / 3;
-  positions.push(0, rings[0].y, 0);
-  const botCenter = positions.length / 3;
-  positions.push(0, rings[last].y, 0);
-  for (let j = 0; j < segs; j += 1) {
-    indices.push(topCenter, j, j + 1);
-    const b = last * cols + j;
-    indices.push(botCenter, b + 1, b);
+  if (caps === "both") {
+    const topCenter = positions.length / 3;
+    positions.push(0, rings[0].y, 0);
+    const botCenter = positions.length / 3;
+    positions.push(0, rings[last].y, 0);
+    for (let j = 0; j < segs; j += 1) {
+      indices.push(topCenter, j, j + 1);
+      const b = last * cols + j;
+      indices.push(botCenter, b + 1, b);
+    }
+  } else if (caps === "bottom") {
+    const botCenter = positions.length / 3;
+    positions.push(0, rings[last].y, 0);
+    for (let j = 0; j < segs; j += 1) {
+      const b = last * cols + j;
+      indices.push(botCenter, b + 1, b);
+    }
   }
 
   const geo = new THREE.BufferGeometry();
@@ -97,107 +110,77 @@ function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
 }
 
 /**
- * Front-facing athletic vest on a structured (u,v) mesh. The
- * boundary is the outline, so there is no cartesian stair-step.
- * Peak half-span 0.402. Thickness is a straight back, not a
- * polar inner shell.
+ * Chest volume only. Stops at the pecs, does not flare past the
+ * arms as a T-shelf. Deltoid width lives on createShoulderCap.
+ * Open collar, no inner offset, so no z-fight.
  */
 export function createPecShell(): THREE.BufferGeometry {
-  const nu = 40;
-  const nv = 32;
-  const yBot = -0.012;
-
-  const halfWidth = (y: number): number => {
-    const t = (0.3 - y) / (0.3 - yBot);
-    const tt = Math.min(1, Math.max(0, t));
-    if (tt < 0.18) {
-      const u = tt / 0.18;
-      return 0.118 + 0.284 * (1 - Math.cos((u * Math.PI) / 2));
+  const rings: ArmorRing[] = [
+    { y: 0.292, rx: 0.108, rzFront: 0.058, rzBack: 0.038, power: 0.48 },
+    { y: 0.248, rx: 0.168, rzFront: 0.078, rzBack: 0.04, power: 0.48 },
+    { y: 0.2, rx: 0.228, rzFront: 0.118, rzBack: 0.042, power: 0.46, ridge: 0.01 },
+    { y: 0.148, rx: 0.236, rzFront: 0.128, rzBack: 0.04, power: 0.46, ridge: 0.012 },
+    { y: 0.09, rx: 0.214, rzFront: 0.092, rzBack: 0.036, power: 0.5 },
+    { y: 0.028, rx: 0.188, rzFront: 0.062, rzBack: 0.032, power: 0.5 },
+    { y: -0.012, rx: 0.172, rzFront: 0.048, rzBack: 0.028, power: 0.5, lip: 0.94 },
+  ];
+  const geo = loftArmor(rings, 40, "bottom");
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    let z = pos.getZ(i);
+    if (y > 0.22) {
+      const u = Math.exp(-((x / 0.08) ** 2)) * ((y - 0.22) / 0.08);
+      pos.setY(i, y - u * 0.048);
     }
-    if (tt < 0.4) {
-      const u = (tt - 0.18) / 0.22;
-      return 0.402 - 0.07 * (u * u);
-    }
-    if (tt < 0.7) {
-      const u = (tt - 0.4) / 0.3;
-      return 0.332 - 0.082 * u;
-    }
-    const u = (tt - 0.7) / 0.3;
-    return 0.25 - 0.048 * (1 - Math.cos((u * Math.PI) / 2));
-  };
-
-  const collarY = (x: number): number => {
-    const t = Math.min(1, Math.abs(x) / 0.402);
-    return 0.274 + 0.02 * t * t;
-  };
-
-  const zFront = (x: number, y: number): number => {
-    const pec = Math.exp(-(x * x) / 0.024) * Math.exp(-((y - 0.165) ** 2) / 0.008);
-    const del =
-      Math.exp(-((Math.abs(x) - 0.3) ** 2) / 0.006) * Math.exp(-((y - 0.21) ** 2) / 0.0046);
-    return 0.042 + pec * 0.076 + del * 0.028;
-  };
-
-  const positions: number[] = [];
-  const cols = nu + 1;
-  for (let j = 0; j <= nv; j += 1) {
-    const v = j / nv;
-    for (let i = 0; i <= nu; i += 1) {
-      const u = (i / nu) * 2 - 1;
-      const yGuess = 0.3 + (yBot - 0.3) * v;
-      const hw = halfWidth(yGuess);
-      const x = u * hw;
-      let y = yGuess;
-      const cY = collarY(x);
-      if (y > cY) y = cY;
-      if (Math.abs(x) > 0.26 && y > 0.16) {
-        y -= ((Math.abs(x) - 0.26) / 0.15) * 0.022;
-      }
-      const z = zFront(x, y);
-      positions.push(x, y, z);
+    if (z > 0) {
+      const pec = Math.exp(-(x * x) / 0.02) * Math.exp(-((y - 0.16) ** 2) / 0.007);
+      pos.setZ(i, z + pec * 0.028);
     }
   }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
+}
 
-  const backStart = positions.length / 3;
-  const backZ = 0.012;
-  for (let k = 0; k < backStart; k += 1) {
-    positions.push(positions[k * 3], positions[k * 3 + 1], backZ);
+/** Black ribcage the pec sits on. Fitted, not a hollow cage. */
+export function createThorax(): THREE.BufferGeometry {
+  const profile = [
+    new THREE.Vector2(0.132, 0.268),
+    new THREE.Vector2(0.148, 0.2),
+    new THREE.Vector2(0.156, 0.12),
+    new THREE.Vector2(0.15, 0.04),
+    new THREE.Vector2(0.138, -0.01),
+  ];
+  const geo = new THREE.LatheGeometry(profile, 28);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const z = pos.getZ(i);
+    pos.setZ(i, z > 0 ? z * 0.72 : z * 0.7);
   }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
+}
 
-  const indices: number[] = [];
-  const quad = (a: number, b: number, c: number, d: number): void => {
-    indices.push(a, c, b, b, c, d);
-  };
-  for (let j = 0; j < nv; j += 1) {
-    for (let i = 0; i < nu; i += 1) {
-      const a = j * cols + i;
-      const b = a + 1;
-      const c = a + cols;
-      const d = c + 1;
-      quad(a, b, c, d);
-      quad(backStart + b, backStart + a, backStart + d, backStart + c);
-    }
+/**
+ * Round deltoid that wraps onto the upper arm. Outer reach ~0.40
+ * from chest center so the span stays in the ~290px band. Not a
+ * shelf and not a polar extract.
+ */
+export function createShoulderCap(side: number): THREE.BufferGeometry {
+  const geo = new THREE.SphereGeometry(0.09, 28, 20);
+  geo.scale(1.12, 0.7, 0.98);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    if (x * side < 0) pos.setX(i, x * 0.38);
+    if (y > 0.02) pos.setY(i, 0.02 + (y - 0.02) * 0.45);
   }
-  for (let j = 0; j < nv; j += 1) {
-    const L0 = j * cols;
-    const L1 = L0 + cols;
-    const R0 = L0 + nu;
-    const R1 = L1 + nu;
-    indices.push(L0, L1, backStart + L0, backStart + L0, L1, backStart + L1);
-    indices.push(R0, backStart + R0, R1, R1, backStart + R0, backStart + R1);
-  }
-  for (let i = 0; i < nu; i += 1) {
-    const t0 = i;
-    const t1 = i + 1;
-    const b0 = nv * cols + i;
-    const b1 = b0 + 1;
-    indices.push(t0, backStart + t0, t1, t1, backStart + t0, backStart + t1);
-    indices.push(b0, b1, backStart + b0, backStart + b0, b1, backStart + b1);
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
+  pos.needsUpdate = true;
+  geo.rotateZ(side * -0.18);
   geo.computeVertexNormals();
   return geo;
 }
@@ -273,18 +256,18 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
   const steps = 14;
   for (let i = 0; i <= steps; i += 1) {
     const t = i / steps;
-    const quad = Math.exp(-(((t - 0.4) / 0.2) ** 2));
+    const quad = Math.exp(-(((t - 0.42) / 0.2) ** 2));
     rings.push({
       y: -t * length,
-      rx: 0.07 + quad * 0.016 - t * 0.008,
-      rzFront: 0.074 + quad * 0.116 - t * 0.01,
-      rzBack: 0.028 + quad * 0.012 - t * 0.004,
-      ridge: 0.004 * quad,
-      lip: i === 0 || i === steps ? 0.92 : 1,
-      power: 0.46,
+      rx: 0.068 + quad * 0.014 - t * 0.008,
+      rzFront: 0.062 + quad * 0.132 - t * 0.008,
+      rzBack: 0.026 + quad * 0.01 - t * 0.004,
+      ridge: 0.005 * quad,
+      lip: i === 0 || i === steps ? 0.9 : 1,
+      power: 0.44,
     });
   }
-  const geo = loftArmor(rings, 36);
+  const geo = loftArmor(rings, 36, "none");
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
@@ -304,15 +287,15 @@ export function createShinShell(length: number): THREE.BufferGeometry {
     const ridge = Math.max(0, 1 - Math.abs(t - 0.36) * 1.7);
     rings.push({
       y: -t * length,
-      rx: 0.054 - t * 0.01,
-      rzFront: 0.098 - t * 0.02,
-      rzBack: 0.022 - t * 0.004,
+      rx: 0.048 - t * 0.008,
+      rzFront: 0.112 - t * 0.022,
+      rzBack: 0.02 - t * 0.004,
       ridge: 0.005 * ridge,
       lip: i === 0 || i === steps ? 0.9 : 1,
       power: 0.5,
     });
   }
-  return loftArmor(rings, 28);
+  return loftArmor(rings, 28, "none");
 }
 
 /** White kneecap on the front of the joint. */
@@ -324,25 +307,11 @@ export function createKneeCap(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Flat finger plate you can count from the front. Not a capsule, not a box slat. */
-export function createFingerPlate(length: number, width: number): THREE.BufferGeometry {
-  const s = new THREE.Shape();
-  const w = width * 0.5;
-  s.moveTo(-w * 0.82, 0);
-  s.bezierCurveTo(-w, length * 0.2, -w * 1.04, length * 0.44, -w * 0.9, length * 0.7);
-  s.bezierCurveTo(-w * 0.5, length * 0.9, -w * 0.18, length, 0, length);
-  s.bezierCurveTo(w * 0.18, length, w * 0.5, length * 0.9, w * 0.9, length * 0.7);
-  s.bezierCurveTo(w * 1.04, length * 0.44, w, length * 0.2, w * 0.82, 0);
-  s.closePath();
-  const geo = new THREE.ExtrudeGeometry(s, {
-    depth: width * 0.7,
-    bevelEnabled: true,
-    bevelThickness: width * 0.11,
-    bevelSize: width * 0.09,
-    bevelSegments: 2,
-    curveSegments: 8,
-  });
-  geo.translate(0, 0, -width * 0.35);
+/** Plump finger volume. Not a stamp plate, not a capsule hoop. */
+export function createFingerVolume(length: number, girth: number): THREE.BufferGeometry {
+  const geo = new THREE.SphereGeometry(girth, 14, 12);
+  geo.scale(0.72, length / (girth * 2), 0.62);
+  geo.translate(0, length * 0.45, 0);
   geo.computeVertexNormals();
   return geo;
 }
