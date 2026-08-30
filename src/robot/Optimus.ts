@@ -269,10 +269,10 @@ export class Optimus {
     g.add(dorsal);
 
     const digits = [
-      { x: -0.03, len: 0.074, r: 0.0102 },
-      { x: -0.01, len: 0.088, r: 0.0112 },
-      { x: 0.01, len: 0.084, r: 0.0108 },
-      { x: 0.029, len: 0.068, r: 0.0096 },
+      { x: -0.032, len: 0.078, r: 0.0114 },
+      { x: -0.011, len: 0.092, r: 0.0124 },
+      { x: 0.011, len: 0.088, r: 0.012 },
+      { x: 0.031, len: 0.072, r: 0.0106 },
     ];
     for (const d of digits) {
       const f = this.finger(d.len, d.r);
@@ -300,7 +300,7 @@ export class Optimus {
       bone.position.set(0, y - L * 0.5, 0.004);
       g.add(bone);
       if (i < 2) {
-        const joint = this.mesh(new THREE.SphereGeometry(r * 0.42, 8, 6), this.mats.matte);
+        const joint = this.mesh(new THREE.SphereGeometry(r * 0.28, 8, 6), this.mats.matte);
         joint.position.set(0, y - L, 0.001);
         g.add(joint);
       }

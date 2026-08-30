@@ -126,16 +126,18 @@ function ellip(
  * Outer half-width is ~0.38, the v11 span, as rounded caps not a bar.
  */
 function torsoField(x: number, y: number, z: number): number {
-  const pec = ellip(x, y, z, 0, 0.168, 0.058, 0.228, 0.148, 0.132);
-  const waist = ellip(x, y, z, 0, 0.048, 0.028, 0.138, 0.072, 0.078);
-  const delL = ellip(x, y, z, -0.292, 0.268, 0.018, 0.122, 0.112, 0.102);
-  const delR = ellip(x, y, z, 0.292, 0.268, 0.018, 0.122, 0.112, 0.102);
-  let d = smin(pec, waist, 0.075);
-  d = smin(d, smin(delL, delR, 0.055), 0.085);
+  const pec = ellip(x, y, z, 0, 0.172, 0.054, 0.242, 0.158, 0.126);
+  const waist = ellip(x, y, z, 0, 0.048, 0.03, 0.142, 0.076, 0.08);
+  const yoke = ellip(x, y, z, 0, 0.258, 0.036, 0.312, 0.06, 0.092);
+  const delL = ellip(x, y, z, -0.286, 0.258, 0.02, 0.116, 0.098, 0.098);
+  const delR = ellip(x, y, z, 0.286, 0.258, 0.02, 0.116, 0.098, 0.098);
+  let d = smin(pec, waist, 0.07);
+  d = smin(d, yoke, 0.06);
+  d = smin(d, smin(delL, delR, 0.05), 0.068);
 
-  if (y > 0.246) {
-    const well = Math.hypot(x / 0.072, (z - 0.012) / 0.06) - 1;
-    d = smax(d, -well, 0.032);
+  if (y > 0.3) {
+    const well = Math.hypot(x / 0.056, (z - 0.01) / 0.048) - 1;
+    d = smax(d, -well, 0.026);
   }
   return d;
 }
@@ -296,12 +298,12 @@ export function createThighShell(length: number): THREE.BufferGeometry {
     const quad = Math.exp(-(((t - 0.26) / 0.22) ** 2));
     rings.push({
       y: -t * length,
-      rx: 0.094 + quad * 0.022 - t * 0.014,
-      rzFront: 0.128 + quad * 0.058 - t * 0.018,
-      rzBack: 0.026 + quad * 0.012 - t * 0.004,
-      ridge: 0.005 * quad,
+      rx: 0.098 + quad * 0.024 - t * 0.014,
+      rzFront: 0.132 + quad * 0.052 - t * 0.016,
+      rzBack: 0.052 + quad * 0.02 - t * 0.008,
+      ridge: 0.004 * quad,
       lip: i === 0 || i === steps ? 0.92 : 1,
-      power: 0.46,
+      power: 0.5,
     });
   }
   return loftArmor(rings, 36);
@@ -316,12 +318,12 @@ export function createShinShell(length: number): THREE.BufferGeometry {
     const ridge = Math.max(0, 1 - Math.abs(t - 0.36) * 1.7);
     rings.push({
       y: -t * length,
-      rx: 0.06 - t * 0.012,
-      rzFront: 0.09 - t * 0.02,
-      rzBack: 0.02 - t * 0.004,
-      ridge: 0.006 * ridge,
+      rx: 0.07 - t * 0.014,
+      rzFront: 0.088 - t * 0.018,
+      rzBack: 0.026 - t * 0.006,
+      ridge: 0.005 * ridge,
       lip: i === 0 || i === steps ? 0.9 : 1,
-      power: 0.48,
+      power: 0.5,
     });
   }
   return loftArmor(rings, 28);
