@@ -105,16 +105,13 @@ function vestSurf(ang: number, v: number): [number, number, number] {
   const front = Math.max(0, Math.cos(ang));
 
   let hw: number;
-  if (v < 0.36) hw = 0.124 + (v / 0.36) * 0.086;
-  else if (v < 0.72) hw = 0.21 + ((v - 0.36) / 0.36) * 0.19;
-  else {
-    const top = (v - 0.72) / 0.28;
-    hw = 0.4 - top * (0.22 - side * 0.16);
-  }
+  if (v < 0.38) hw = 0.124 + (v / 0.38) * 0.276;
+  else hw = 0.4;
+  if (v > 0.78) hw -= ((v - 0.78) / 0.22) * 0.24 * (1 - side);
 
-  let y = 0.01 + v * 0.312;
-  if (v > 0.73) y -= (1 - side) ** 2 * (v - 0.73) * 0.11;
-  if (v > 0.8 && side > 0.5) y -= (side - 0.5) * (v - 0.8) * 0.09;
+  let y = 0.01 + v * 0.328;
+  if (v > 0.76) y -= (1 - side) ** 2 * (v - 0.76) * 0.1;
+  if (v > 0.86 && side > 0.62) y -= (side - 0.62) * (v - 0.86) * 0.14;
 
   const pec = Math.exp(-(ang * ang) / 1.05) * Math.exp(-((v - 0.4) ** 2) / 0.09);
   const depth = 0.05 + pec * 0.066;
