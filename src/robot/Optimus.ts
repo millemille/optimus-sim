@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
+  createDeltoid,
+  createFingerPlate,
   createKneeCap,
   createLimbShell,
   createMidriff,
@@ -174,10 +176,6 @@ export class Optimus {
     column.name = "neckColumn";
     column.position.set(0, 0.372, 0.01);
     this.chest.add(column);
-
-    const well = this.mesh(new THREE.CylinderGeometry(0.068, 0.05, 0.046, 20), this.mats.matte);
-    well.position.set(0, 0.312, 0.01);
-    this.chest.add(well);
   }
 
   private buildHead(): void {
@@ -204,8 +202,12 @@ export class Optimus {
     upper.position.set(side * 0.018, -0.05, 0);
     shoulder.add(upper);
 
-    const housing = this.mesh(createLimbShell(0.165, 0.048, 0.04, 0.042), this.mats.white);
-    housing.position.y = -0.1;
+    const sleeve = this.mesh(createDeltoid(side), this.mats.white);
+    sleeve.position.set(0, -0.012, 0.006);
+    upper.add(sleeve);
+
+    const housing = this.mesh(createLimbShell(0.2, 0.048, 0.04, 0.046), this.mats.white);
+    housing.position.y = -0.055;
     upper.add(housing);
 
     const elbow = new THREE.Group();
@@ -240,38 +242,34 @@ export class Optimus {
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
 
-    const palm = this.mesh(new THREE.SphereGeometry(0.03, 16, 12), this.mats.matte);
-    palm.scale.set(1.32, 0.9, 0.7);
-    palm.position.set(0, -0.03, 0);
+    const palm = this.panel(0.054, 0.034, 0.02, this.mats.matte, 0.01);
+    palm.position.set(0, -0.028, 0);
     g.add(palm);
-    const dorsal = this.mesh(new THREE.SphereGeometry(0.026, 14, 10), this.mats.white);
-    dorsal.scale.set(1.18, 0.72, 0.32);
-    dorsal.position.set(0, -0.026, 0.015);
+    const dorsal = this.panel(0.046, 0.024, 0.008, this.mats.white, 0.008);
+    dorsal.position.set(0, -0.026, 0.012);
     g.add(dorsal);
 
-    const xs = [-0.022, -0.007, 0.008, 0.022];
-    const lens = [0.036, 0.042, 0.04, 0.03];
+    const xs = [-0.02, -0.007, 0.007, 0.02];
+    const lens = [0.046, 0.054, 0.052, 0.042];
+    const fans = [-0.1, -0.03, 0.03, 0.12];
     for (let i = 0; i < 4; i += 1) {
-      const bone = this.mesh(new THREE.CapsuleGeometry(0.0068, lens[i], 3, 8), this.mats.matte);
-      bone.position.set(xs[i], -0.058, 0);
-      bone.rotation.x = 0.38 + i * 0.03;
-      g.add(bone);
-      const pad = this.mesh(new THREE.SphereGeometry(0.0074, 10, 8), this.mats.white);
-      pad.scale.set(0.82, 1.7 + i * 0.08, 0.42);
-      pad.position.set(xs[i], -0.054, 0.013);
-      pad.rotation.x = 0.38 + i * 0.03;
-      g.add(pad);
+      const knuckle = this.mesh(new THREE.SphereGeometry(0.0064, 8, 6), this.mats.joint);
+      knuckle.position.set(xs[i], -0.044, 0.004);
+      g.add(knuckle);
+      const plate = this.mesh(createFingerPlate(lens[i], 0.0124), this.mats.white);
+      plate.position.set(xs[i], -0.046, 0.006);
+      plate.rotation.z = fans[i];
+      plate.rotation.x = 0.18;
+      g.add(plate);
     }
 
-    const thumb = this.mesh(new THREE.CapsuleGeometry(0.0066, 0.02, 3, 8), this.mats.matte);
-    thumb.position.set(side * 0.032, -0.018, 0.004);
-    thumb.rotation.set(0.3, side * 0.48, side * 0.68);
+    const thumbKnuckle = this.mesh(new THREE.SphereGeometry(0.006, 8, 6), this.mats.joint);
+    thumbKnuckle.position.set(side * 0.028, -0.016, 0.006);
+    g.add(thumbKnuckle);
+    const thumb = this.mesh(createFingerPlate(0.032, 0.011), this.mats.white);
+    thumb.position.set(side * 0.03, -0.018, 0.01);
+    thumb.rotation.set(0.55, side * 0.35, side * 0.95);
     g.add(thumb);
-    const tPad = this.mesh(new THREE.SphereGeometry(0.007, 10, 8), this.mats.white);
-    tPad.scale.set(0.8, 1.5, 0.4);
-    tPad.position.set(side * 0.034, -0.02, 0.014);
-    tPad.rotation.set(0.3, side * 0.48, side * 0.68);
-    g.add(tPad);
     return g;
   }
 
