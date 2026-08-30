@@ -57,11 +57,17 @@ export class Game {
 
     if (this.studio) {
       this.scene.environment = null;
-      this.renderer.toneMappingExposure = 0.92;
+      this.renderer.toneMapping = THREE.NeutralToneMapping;
+      this.renderer.toneMappingExposure = 0.94;
       this.scene.fog = null;
       this.scene.background = new THREE.Color(0x5c5a56);
       this.factory.group.visible = false;
+      this.factory.group.traverse((obj) => {
+        if (obj instanceof THREE.Light) obj.visible = false;
+      });
       applyStudioLights(this.scene, this.player.position);
+      this.camera.fov = 38;
+      this.camera.updateProjectionMatrix();
       const floor = new THREE.Mesh(
         new THREE.CircleGeometry(5, 48),
         new THREE.MeshStandardMaterial({ color: 0x8c8a84, roughness: 0.92 }),
