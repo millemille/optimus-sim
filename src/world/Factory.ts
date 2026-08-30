@@ -9,7 +9,7 @@ export class Factory {
   readonly crate: THREE.Group;
   readonly crateMarker: THREE.Group;
   readonly dropZone: THREE.Group;
-  readonly crateHome = new THREE.Vector3(-2.15, 1.03, 1.35);
+  readonly crateHome = new THREE.Vector3(-1.45, 1.03, 1.25);
   readonly dropPos = new THREE.Vector3(2.35, 0.12, 4.15);
 
   constructor() {

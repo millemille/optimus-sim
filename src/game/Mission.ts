@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Factory } from "../world/Factory.ts";
 import { Player } from "./Player.ts";
 
-const PICK_RANGE = 1.35;
+const PICK_RANGE = 1.85;
 const DROP_RANGE = 2.2;
 
 export type MissionPhase = "seek" | "carry" | "done";
