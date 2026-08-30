@@ -9,7 +9,7 @@ export class Factory {
   readonly crate: THREE.Group;
   readonly crateMarker: THREE.Group;
   readonly dropZone: THREE.Group;
-  readonly crateHome = new THREE.Vector3(-1.45, 1.03, 1.25);
+  readonly crateHome = new THREE.Vector3(-1.45, 1.06, 1.25);
   readonly dropPos = new THREE.Vector3(2.35, 0.12, 4.15);
 
   constructor() {
@@ -261,6 +261,14 @@ export class Factory {
     ring.rotation.x = -Math.PI / 2;
     ring.position.set(this.crateHome.x, 0.92, this.crateHome.z);
     g.add(ring);
+    const postMat = new THREE.MeshStandardMaterial({
+      color: 0xe07028,
+      emissive: 0x8a3010,
+      emissiveIntensity: 0.5,
+    });
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.55, 0.06), postMat);
+    post.position.set(this.crateHome.x + 0.42, 0.28, this.crateHome.z);
+    g.add(post);
     return g;
   }
 
@@ -268,12 +276,12 @@ export class Factory {
     const g = new THREE.Group();
     g.name = "parts-crate";
     const body = new THREE.Mesh(
-      new RoundedBoxGeometry(0.4, 0.24, 0.32, 1, 0.012),
+      new RoundedBoxGeometry(0.48, 0.28, 0.38, 1, 0.014),
       new THREE.MeshStandardMaterial({
-        color: 0xb56a32,
-        roughness: 0.55,
-        emissive: 0x3a1808,
-        emissiveIntensity: 0.35,
+        color: 0xe07028,
+        roughness: 0.42,
+        emissive: 0x8a3010,
+        emissiveIntensity: 0.55,
       }),
     );
     body.castShadow = true;
