@@ -9,6 +9,7 @@ export class CameraRig {
   yaw = 0;
   pitch = 0.22;
   distance = 3.35;
+  lookHeight = LOOK_HEIGHT;
   private readonly offset = new THREE.Vector3();
   private readonly target = new THREE.Vector3();
 
@@ -27,10 +28,11 @@ export class CameraRig {
   }
 
   setPortrait(view: "front" | "q" | "side"): void {
-    this.distance = 2.55;
-    this.pitch = 0.06;
+    this.distance = 2.35;
+    this.lookHeight = 0.9;
+    this.pitch = 0.04;
     if (view === "front") this.yaw = 0;
-    else if (view === "q") this.yaw = 0.62;
+    else if (view === "q") this.yaw = 0.7;
     else this.yaw = Math.PI / 2;
   }
 
@@ -43,7 +45,7 @@ export class CameraRig {
     );
     this.camera.position.copy(origin).add(this.offset);
     this.camera.position.y = Math.max(0.35, this.camera.position.y);
-    this.target.set(origin.x, origin.y + LOOK_HEIGHT, origin.z);
+    this.target.set(origin.x, origin.y + this.lookHeight, origin.z);
     this.camera.lookAt(this.target);
   }
 }

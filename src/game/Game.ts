@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { Factory } from "../world/Factory.ts";
 import { Hud } from "../ui/hud.ts";
 import { applyStudioLights, poseStudioCamera, studioViewFromUrl } from "./Studio.ts";
@@ -48,11 +49,23 @@ export class Game {
     this.scene.add(this.factory.group);
     this.scene.add(this.player.robot.root);
 
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    pmrem.dispose();
+
     if (this.studio) {
-      this.renderer.toneMappingExposure = 1.18;
+      this.renderer.toneMappingExposure = 1.2;
       this.scene.fog = null;
-      this.scene.background = new THREE.Color(0x4a4a4c);
+      this.scene.background = new THREE.Color(0x6a6864);
+      this.factory.group.visible = false;
       applyStudioLights(this.scene, this.player.position);
+      const floor = new THREE.Mesh(
+        new THREE.CircleGeometry(5, 48),
+        new THREE.MeshStandardMaterial({ color: 0x8c8a84, roughness: 0.92 }),
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.receiveShadow = true;
+      this.scene.add(floor);
       poseStudioCamera(this.cameraRig, this.studio);
       this.hud.hideAll();
     } else {
