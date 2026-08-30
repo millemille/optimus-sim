@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
+  createHandSilhouette,
   createKneeCap,
   createLimbShell,
   createMidriff,
@@ -178,9 +179,9 @@ export class Optimus {
     this.chest.add(waist);
 
     for (let i = 0; i < 4; i += 1) {
-      const ring = this.mesh(new THREE.TorusGeometry(0.124 - i * 0.004, 0.007, 8, 22), this.mats.metal);
+      const ring = this.mesh(new THREE.TorusGeometry(0.168 - i * 0.012, 0.008, 8, 24), this.mats.metal);
       ring.rotation.x = Math.PI / 2;
-      ring.position.y = 0.062 - i * 0.028;
+      ring.position.y = 0.078 - i * 0.032;
       this.chest.add(ring);
     }
   }
@@ -251,54 +252,13 @@ export class Optimus {
 
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
-
-    const palm = this.panel(0.074, 0.052, 0.032, this.mats.matte, 0.014);
-    palm.position.set(0, -0.03, 0.004);
-    g.add(palm);
-    const dorsal = this.panel(0.068, 0.044, 0.012, this.mats.white, 0.01);
-    dorsal.position.set(0, -0.026, 0.016);
-    g.add(dorsal);
-
-    const xs = [-0.027, -0.009, 0.009, 0.026];
-    const lens = [0.056, 0.064, 0.06, 0.048];
-    for (let i = 0; i < 4; i += 1) {
-      const f = this.finger(lens[i]);
-      f.position.set(xs[i], -0.054, 0.006);
-      f.rotation.x = 0.42 + i * 0.035;
-      f.rotation.z = (i - 1.5) * 0.07;
-      g.add(f);
-    }
-
-    const thumb = this.finger(0.044);
-    thumb.position.set(side * 0.036, -0.016, 0.012);
-    thumb.rotation.set(0.32, side * 0.5, side * 0.72);
-    g.add(thumb);
+    const core = this.mesh(createHandSilhouette(side), this.mats.matte);
+    g.add(core);
+    const shell = this.mesh(createHandSilhouette(side), this.mats.white);
+    shell.scale.set(0.92, 0.94, 0.42);
+    shell.position.z = 0.012;
+    g.add(shell);
     return g;
-  }
-
-  private finger(length: number): THREE.Group {
-    const f = new THREE.Group();
-    const prox = length * 0.48;
-    const dist = length * 0.52;
-
-    const c1 = this.panel(0.014, prox, 0.013, this.mats.matte, 0.005);
-    c1.position.y = -prox * 0.5;
-    f.add(c1);
-    const w1 = this.panel(0.013, prox * 0.88, 0.007, this.mats.white, 0.004);
-    w1.position.set(0, -prox * 0.5, 0.007);
-    f.add(w1);
-
-    const tip = new THREE.Group();
-    tip.position.y = -prox;
-    tip.rotation.x = 0.38;
-    f.add(tip);
-    const c2 = this.panel(0.012, dist, 0.012, this.mats.matte, 0.005);
-    c2.position.y = -dist * 0.5;
-    tip.add(c2);
-    const w2 = this.panel(0.011, dist * 0.86, 0.006, this.mats.white, 0.004);
-    w2.position.set(0, -dist * 0.5, 0.006);
-    tip.add(w2);
-    return f;
   }
 
   private leg(side: number): THREE.Group {

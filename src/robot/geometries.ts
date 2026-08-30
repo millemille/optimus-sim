@@ -133,23 +133,27 @@ function capsule2(
  */
 function torsoField(x: number, y: number, z: number): number {
   const ax = Math.abs(x);
-  const pec = ellip2(ax, y, 0.108, 0.118, 0.14, 0.126);
-  const del = ellip2(ax, y, 0.328, 0.226, 0.086, 0.09);
-  const conn = capsule2(ax, y, 0.118, 0.136, 0.308, 0.216, 0.094);
-  let d2 = smin(smin(pec, del, 0.12), conn, 0.09);
+  const pec = ellip2(ax, y, 0.112, 0.098, 0.136, 0.102);
+  const del = ellip2(ax, y, 0.34, 0.246, 0.078, 0.066);
+  const wrap = capsule2(ax, y, 0.176, 0.112, 0.292, 0.198, 0.046);
+  let d2 = smin(smin(pec, del, 0.05), wrap, 0.038);
 
-  if (y > 0.208) {
-    const well = 0.122 + (y - 0.208) * 1.9;
-    d2 = smax(d2, well - ax, 0.034);
+  if (y > 0.178) {
+    const well = 0.148 + (y - 0.178) * 2.35;
+    d2 = smax(d2, well - ax, 0.03);
+  }
+  if (y < 0.208 && ax > 0.255) {
+    const pit = (0.208 - y) * 2.6 - (0.355 - ax);
+    d2 = smax(d2, pit, 0.024);
   }
 
-  const pecW = Math.exp(-((ax - 0.108) ** 2) / 0.018 - ((y - 0.118) ** 2) / 0.016);
-  const delW = Math.exp(-((ax - 0.328) ** 2) / 0.012 - ((y - 0.226) ** 2) / 0.012);
-  const cleft = Math.exp(-(ax ** 2) / 0.0036) * Math.max(0, 1 - Math.abs(y - 0.12) / 0.12);
-  const zThick = 0.036 + 0.058 * pecW + 0.042 * delW - 0.02 * cleft;
-  const zMid = 0.03 + 0.034 * pecW + 0.014 * delW;
+  const pecW = Math.exp(-((ax - 0.112) ** 2) / 0.016 - ((y - 0.098) ** 2) / 0.012);
+  const delW = Math.exp(-((ax - 0.34) ** 2) / 0.01 - ((y - 0.246) ** 2) / 0.008);
+  const cleft = Math.exp(-(ax ** 2) / 0.0032) * Math.max(0, 1 - Math.abs(y - 0.1) / 0.1);
+  const zThick = 0.038 + 0.062 * pecW + 0.04 * delW - 0.022 * cleft;
+  const zMid = 0.032 + 0.038 * pecW + 0.012 * delW;
 
-  let d = smax(d2, Math.abs(z - zMid) - zThick, 0.018);
+  let d = smax(d2, Math.abs(z - zMid) - zThick, 0.016);
   d = smax(d, -z - 0.016, 0.014);
   return d;
 }
@@ -242,13 +246,13 @@ export function createPecShell(): THREE.BufferGeometry {
 /** Fitted black abdomen. Fills the empty triangles under the pec hem. */
 export function createMidriff(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.168, 0.092),
-    new THREE.Vector2(0.158, 0.062),
-    new THREE.Vector2(0.14, 0.032),
-    new THREE.Vector2(0.122, 0.004),
-    new THREE.Vector2(0.118, -0.028),
-    new THREE.Vector2(0.128, -0.056),
-    new THREE.Vector2(0.142, -0.078),
+    new THREE.Vector2(0.205, 0.11),
+    new THREE.Vector2(0.188, 0.078),
+    new THREE.Vector2(0.162, 0.042),
+    new THREE.Vector2(0.138, 0.008),
+    new THREE.Vector2(0.128, -0.028),
+    new THREE.Vector2(0.136, -0.058),
+    new THREE.Vector2(0.152, -0.084),
   ];
   const geo = new THREE.LatheGeometry(profile, 28);
   const pos = geo.attributes.position;
@@ -350,6 +354,69 @@ export function createShinShell(length: number): THREE.BufferGeometry {
     });
   }
   return loftArmor(rings, 28);
+}
+
+/** One hand-shaped mass: flat palm, four long fingers, thumb. */
+export function createHandSilhouette(side: number): THREE.BufferGeometry {
+  const field = (x: number, y: number): number => {
+    let d = ellip2(x, y, 0, -0.028, 0.034, 0.026);
+    const digits: Array<[number, number, number, number, number]> = [
+      [-0.024, -0.048, -0.028, -0.092, 0.008],
+      [-0.008, -0.05, -0.008, -0.102, 0.009],
+      [0.008, -0.05, 0.01, -0.098, 0.0085],
+      [0.022, -0.046, 0.027, -0.084, 0.0075],
+    ];
+    for (const [ax, ay, bx, by, r] of digits) {
+      d = smin(d, capsule2(x, y, ax, ay, bx, by, r), 0.005);
+    }
+    d = smin(d, capsule2(x, y, side * 0.018, -0.016, side * 0.044, -0.05, 0.009), 0.006);
+    return d;
+  };
+
+  const nu = 36;
+  const nv = 40;
+  const x0 = -0.06;
+  const x1 = 0.06;
+  const y0 = 0.01;
+  const y1 = -0.12;
+  const cols = nu + 1;
+  const positions: number[] = [];
+  const live: boolean[] = [];
+  for (let iv = 0; iv <= nv; iv += 1) {
+    const y = y0 + (iv / nv) * (y1 - y0);
+    for (let iu = 0; iu <= nu; iu += 1) {
+      const x = x0 + (iu / nu) * (x1 - x0);
+      const d = field(x, y);
+      if (d > 0) {
+        positions.push(0, y, 0);
+        live.push(false);
+        continue;
+      }
+      const z = 0.016 * Math.max(0, 1 + d / 0.012);
+      positions.push(x, y, z);
+      live.push(true);
+    }
+  }
+  const frontCount = positions.length / 3;
+  const inner = positions.map((v, i) => (i % 3 === 2 ? -v * 0.55 : v));
+  positions.push(...inner);
+  const indices: number[] = [];
+  for (let i = 0; i < nv; i += 1) {
+    for (let j = 0; j < nu; j += 1) {
+      const a = i * cols + j;
+      const b = a + 1;
+      const c = a + cols;
+      const d = c + 1;
+      if (!live[a] || !live[b] || !live[c] || !live[d]) continue;
+      indices.push(a, c, b, b, c, d);
+      indices.push(frontCount + b, frontCount + a, frontCount + d, frontCount + c);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
 }
 
 /** White kneecap on the front of the joint. */
