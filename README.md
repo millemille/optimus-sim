@@ -48,3 +48,11 @@ No physics engine. Pickup is kinematic: the crate parents to a carry anchor on t
 Vite, TypeScript, three.js r180. Static client only. No backend, no LLM on the play path.
 
 Robot and room are procedural. Floor and wall maps are canvas noise, not photo textures.
+
+Portrait stills (idle, studio lights, no HUD):
+
+```
+http://localhost:5173/?studio=front
+http://localhost:5173/?studio=q
+http://localhost:5173/?studio=side
+```
