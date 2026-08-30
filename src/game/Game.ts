@@ -54,7 +54,7 @@ export class Game {
     pmrem.dispose();
 
     if (this.studio) {
-      this.renderer.toneMappingExposure = 1.2;
+      this.renderer.toneMappingExposure = 1.05;
       this.scene.fog = null;
       this.scene.background = new THREE.Color(0x6a6864);
       this.factory.group.visible = false;

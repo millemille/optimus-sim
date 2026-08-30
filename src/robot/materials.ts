@@ -18,10 +18,10 @@ export function createRobotMaterials(): RobotMaterials {
       metalness: 0.02,
     }),
     visor: new THREE.MeshStandardMaterial({
-      color: 0x050608,
-      roughness: 0.06,
-      metalness: 0.45,
-      envMapIntensity: 1.35,
+      color: 0x060709,
+      roughness: 0.18,
+      metalness: 0.12,
+      envMapIntensity: 0.22,
     }),
     skull: new THREE.MeshStandardMaterial({
       color: 0x0c0c0e,

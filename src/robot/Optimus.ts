@@ -162,16 +162,16 @@ export class Optimus {
   }
 
   private buildTorso(): void {
-    const chest = this.panel(0.46, 0.3, 0.22, this.mats.white, 0.055);
-    chest.position.set(0, 0.26, 0.015);
+    const chest = this.panel(0.48, 0.3, 0.26, this.mats.white, 0.06);
+    chest.position.set(0, 0.25, 0.02);
     this.chest.add(chest);
 
     const pec = this.panel(0.36, 0.12, 0.05, this.mats.white, 0.03);
     pec.position.set(0, 0.3, 0.12);
     this.chest.add(pec);
 
-    const trap = this.panel(0.3, 0.08, 0.16, this.mats.white, 0.03);
-    trap.position.set(0, 0.4, 0.0);
+    const trap = this.panel(0.26, 0.06, 0.14, this.mats.white, 0.024);
+    trap.position.set(0, 0.385, 0.02);
     this.chest.add(trap);
 
     const back = this.panel(0.4, 0.26, 0.07, this.mats.white, 0.04);
@@ -225,11 +225,11 @@ export class Optimus {
     head.add(face);
 
     const wrap = this.mesh(
-      new THREE.SphereGeometry(0.11, 32, 20, Math.PI * 0.28, Math.PI * 0.44, Math.PI * 0.35, Math.PI * 0.55),
+      new THREE.SphereGeometry(0.108, 32, 20, Math.PI * 0.3, Math.PI * 0.4, Math.PI * 0.38, Math.PI * 0.48),
       this.mats.visor,
     );
-    wrap.scale.set(0.86, 1.02, 1.04);
-    wrap.position.set(0, 0.0, 0.008);
+    wrap.scale.set(0.84, 1.0, 0.98);
+    wrap.position.set(0, 0.0, 0.004);
     head.add(wrap);
   }
 
@@ -238,9 +238,9 @@ export class Optimus {
     shoulder.position.set(side * 0.24, 0.34, 0);
     this.chest.add(shoulder);
 
-    const pauldron = this.mesh(new THREE.SphereGeometry(0.085, 20, 16), this.mats.white);
-    pauldron.scale.set(1.15, 0.78, 1.12);
-    pauldron.position.set(side * 0.03, 0.035, 0);
+    const pauldron = this.mesh(new THREE.SphereGeometry(0.1, 22, 16), this.mats.white);
+    pauldron.scale.set(1.25, 0.82, 1.2);
+    pauldron.position.set(side * 0.035, 0.04, 0.01);
     shoulder.add(pauldron);
 
     const flow = this.panel(0.1, 0.08, 0.12, this.mats.white, 0.03);
@@ -255,11 +255,11 @@ export class Optimus {
     upper.position.set(side * 0.04, -0.05, 0);
     shoulder.add(upper);
 
-    const housing = this.panel(0.09, 0.2, 0.09, this.mats.white, 0.028);
+    const housing = this.panel(0.1, 0.21, 0.1, this.mats.white, 0.03);
     housing.position.y = -0.11;
     upper.add(housing);
-    const front = this.panel(0.07, 0.18, 0.04, this.mats.white, 0.016);
-    front.position.set(0, -0.11, 0.04);
+    const front = this.panel(0.078, 0.18, 0.045, this.mats.white, 0.016);
+    front.position.set(0, -0.11, 0.045);
     upper.add(front);
 
     const elbow = new THREE.Group();
@@ -286,11 +286,11 @@ export class Optimus {
     forearm.position.y = -0.03;
     elbow.add(forearm);
 
-    const fHousing = this.panel(0.078, 0.18, 0.078, this.mats.white, 0.024);
+    const fHousing = this.panel(0.088, 0.19, 0.088, this.mats.white, 0.026);
     fHousing.position.y = -0.1;
     forearm.add(fHousing);
-    const fFront = this.panel(0.06, 0.16, 0.035, this.mats.white, 0.014);
-    fFront.position.set(0, -0.1, 0.036);
+    const fFront = this.panel(0.068, 0.16, 0.04, this.mats.white, 0.014);
+    fFront.position.set(0, -0.1, 0.04);
     forearm.add(fFront);
 
     const cuff = this.mesh(new THREE.CylinderGeometry(0.032, 0.03, 0.028, 12), this.mats.white);
@@ -369,11 +369,11 @@ export class Optimus {
     thigh.position.y = -0.03;
     hip.add(thigh);
 
-    const tHousing = this.panel(0.12, 0.34, 0.11, this.mats.white, 0.032);
+    const tHousing = this.panel(0.13, 0.35, 0.12, this.mats.white, 0.034);
     tHousing.position.y = -0.18;
     thigh.add(tHousing);
-    const tFront = this.panel(0.09, 0.3, 0.04, this.mats.white, 0.018);
-    tFront.position.set(0, -0.18, 0.05);
+    const tFront = this.panel(0.1, 0.3, 0.045, this.mats.white, 0.018);
+    tFront.position.set(0, -0.18, 0.055);
     thigh.add(tFront);
 
     const knee = new THREE.Group();
@@ -392,11 +392,11 @@ export class Optimus {
     shin.position.y = -0.03;
     knee.add(shin);
 
-    const sHousing = this.panel(0.1, 0.32, 0.09, this.mats.white, 0.028);
+    const sHousing = this.panel(0.11, 0.33, 0.1, this.mats.white, 0.03);
     sHousing.position.y = -0.17;
     shin.add(sHousing);
-    const sFront = this.panel(0.078, 0.28, 0.035, this.mats.white, 0.016);
-    sFront.position.set(0, -0.17, 0.042);
+    const sFront = this.panel(0.085, 0.28, 0.04, this.mats.white, 0.016);
+    sFront.position.set(0, -0.17, 0.048);
     shin.add(sFront);
 
     const ankle = new THREE.Group();
@@ -413,12 +413,12 @@ export class Optimus {
       ankle.add(cable);
     }
 
-    const boot = this.panel(0.09, 0.07, 0.24, this.mats.matte, 0.028);
-    boot.position.set(0, -0.045, 0.05);
+    const boot = this.panel(0.095, 0.085, 0.25, this.mats.matte, 0.032);
+    boot.position.set(0, -0.05, 0.055);
     ankle.add(boot);
-    const toe = this.mesh(new THREE.SphereGeometry(0.038, 14, 10), this.mats.matte);
-    toe.scale.set(1.15, 0.75, 1.05);
-    toe.position.set(0, -0.048, 0.15);
+    const toe = this.mesh(new THREE.SphereGeometry(0.044, 16, 12), this.mats.matte);
+    toe.scale.set(1.1, 0.85, 1.15);
+    toe.position.set(0, -0.048, 0.16);
     ankle.add(toe);
     const sole = this.panel(0.086, 0.016, 0.22, this.mats.joint, 0.008);
     sole.position.set(0, -0.078, 0.045);
