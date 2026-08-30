@@ -157,7 +157,7 @@ function torsoField(x: number, y: number, z: number): number {
   }
   const pecLift = Math.sin(Math.min(1, t / 0.52) * Math.PI);
   const hz = 0.058 + pecLift * 0.05;
-  let d = boxRound(x, y - 0.152, z - 0.04, hx, 0.152, hz, 0.05);
+  let d = boxRound(x, y - 0.152, z - 0.04, hx, 0.152, hz, 0.062);
 
   const delL = ellip(x, y, z, -0.302, 0.252, 0.018, 0.098, 0.086, 0.092);
   const delR = ellip(x, y, z, 0.302, 0.252, 0.018, 0.098, 0.086, 0.092);
@@ -166,6 +166,11 @@ function torsoField(x: number, y: number, z: number): number {
   d = smin(d, smin(delL, delR, 0.045), 0.062);
   d = smin(d, smin(sleeveL, sleeveR, 0.05), 0.058);
 
+  if (y > 0.2) {
+    const center = Math.exp(-(x * x) / 0.02);
+    const plane = ((y - 0.2) / 0.15) * center - 0.12;
+    d = smax(d, plane, 0.045);
+  }
   if (y > 0.286) {
     const well = Math.hypot(x / 0.058, (z - 0.008) / 0.048) - 1;
     d = smax(d, -well, 0.03);
@@ -379,7 +384,7 @@ export function createKneeCap(): THREE.BufferGeometry {
 
 /** Thin white plate on the back of one phalanx. */
 export function createPhalanxPlate(width: number, length: number): THREE.BufferGeometry {
-  const geo = new THREE.BoxGeometry(width, length, 0.0054);
+  const geo = new THREE.BoxGeometry(width, length, 0.0062);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const y = pos.getY(i);
