@@ -176,7 +176,9 @@ export function createPecShell(): THREE.BufferGeometry {
     const v = iv / nv;
     for (let iu = 0; iu <= nu; iu += 1) {
       const [x, y, z] = vestSurf(a0 + (iu / nu) * (a1 - a0), v);
-      positions.push(x * 0.88, y, z - 0.028);
+      // Pull the inner face to a spine so the pec is a solid mass.
+      // A 3cm shell rim reads as a shelf from the studio camera.
+      positions.push(x * 0.18, y * 0.94 + 0.012, Math.min(z * 0.12, 0.012));
     }
   }
 
