@@ -96,146 +96,50 @@ function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
   return geo;
 }
 
-function smin(a: number, b: number, k: number): number {
-  const h = Math.max(k - Math.abs(a - b), 0) / k;
-  return Math.min(a, b) - h * h * k * 0.25;
-}
+type BodyRing = {
+  y: number;
+  cx: number;
+  rx: number;
+  rzFront: number;
+  rzBack: number;
+};
 
-function smax(a: number, b: number, k: number): number {
-  const h = Math.max(k - Math.abs(a - b), 0) / k;
-  return Math.max(a, b) + h * h * k * 0.25;
-}
-
-function ellip2(x: number, y: number, cx: number, cy: number, rx: number, ry: number): number {
-  return Math.hypot((x - cx) / rx, (y - cy) / ry) - 1;
-}
-
-function capsule2(
-  x: number,
-  y: number,
-  ax: number,
-  ay: number,
-  bx: number,
-  by: number,
-  r: number,
-): number {
-  const dx = bx - ax;
-  const dy = by - ay;
-  const l2 = dx * dx + dy * dy || 1;
-  const t = Math.min(1, Math.max(0, ((x - ax) * dx + (y - ay) * dy) / l2));
-  return Math.hypot(x - ax - dx * t, y - ay - dy * t) - r;
-}
-
-/**
- * Front silhouette is authored in XY: one kidney per side (pec mound
- * running diagonally into a round deltoid), U-neckline, rounded hem.
- * Z is only thickness on that silhouette. Not a vest, not two balls.
- */
-function torsoField(x: number, y: number, z: number): number {
-  const ax = Math.abs(x);
-  const pec = ellip2(ax, y, 0.112, 0.098, 0.136, 0.102);
-  const del = ellip2(ax, y, 0.336, 0.228, 0.08, 0.086);
-  const wrap = capsule2(ax, y, 0.176, 0.112, 0.286, 0.188, 0.05);
-  const clav = ellip2(ax, y, 0.09, 0.188, 0.072, 0.048);
-  let d2 = smin(smin(pec, del, 0.05), wrap, 0.038);
-  d2 = smin(d2, clav, 0.04);
-
-  if (y > 0.2) {
-    const well = 0.1 + (y - 0.2) * 2.6;
-    d2 = smax(d2, well - ax, 0.028);
-  }
-  if (y < 0.2 && ax > 0.236 && ax < 0.312) {
-    const pit = (0.2 - y) * 2.1 - Math.abs(ax - 0.274) * 0.35;
-    d2 = smax(d2, pit, 0.022);
-  }
-
-  const pecW = Math.exp(-((ax - 0.112) ** 2) / 0.016 - ((y - 0.098) ** 2) / 0.012);
-  const delW = Math.exp(-((ax - 0.336) ** 2) / 0.01 - ((y - 0.228) ** 2) / 0.01);
-  const cleft = Math.exp(-(ax ** 2) / 0.0032) * Math.max(0, 1 - Math.abs(y - 0.1) / 0.1);
-  const zThick = 0.038 + 0.062 * pecW + 0.04 * delW - 0.022 * cleft;
-  const zMid = 0.032 + 0.038 * pecW + 0.012 * delW;
-
-  let d = smax(d2, Math.abs(z - zMid) - zThick, 0.016);
-  d = smax(d, -z - 0.016, 0.014);
-  return d;
-}
-
-function fieldGrad(x: number, y: number, z: number): [number, number, number] {
-  const e = 0.0026;
-  const dx = torsoField(x + e, y, z) - torsoField(x - e, y, z);
-  const dy = torsoField(x, y + e, z) - torsoField(x, y - e, z);
-  const dz = torsoField(x, y, z + e) - torsoField(x, y, z - e);
-  const n = Math.hypot(dx, dy, dz) || 1;
-  return [dx / n, dy / n, dz / n];
-}
-
-function frontHit(x: number, y: number): [number, number, number] | null {
-  let z = 0.22;
-  let prev = torsoField(x, y, z);
-  for (let i = 0; i < 70; i += 1) {
-    z -= 0.0045;
-    if (z < -0.04) break;
-    const d = torsoField(x, y, z);
-    if (prev > 0 && d <= 0) {
-      const f = prev / (prev - d);
-      return [x, y, z + 0.0045 - f * 0.0045];
-    }
-    prev = d;
-  }
-  return null;
-}
-
-export function createPecShell(): THREE.BufferGeometry {
-  const nu = 80;
-  const nv = 56;
-  const x0 = -0.43;
-  const x1 = 0.43;
-  const y0 = -0.05;
-  const y1 = 0.332;
-  const cols = nu + 1;
-  const hits: Array<[number, number, number] | null> = [];
-
-  for (let iv = 0; iv <= nv; iv += 1) {
-    const y = y0 + (iv / nv) * (y1 - y0);
-    for (let iu = 0; iu <= nu; iu += 1) {
-      hits.push(frontHit(x0 + (iu / nu) * (x1 - x0), y));
-    }
-  }
-
+/** Smooth D-section loft whose ring centers walk from clavicle to pec to hem. */
+function loftHalf(side: number, rings: BodyRing[], segs: number): THREE.BufferGeometry {
+  const cols = segs + 1;
   const positions: number[] = [];
-  const inner: number[] = [];
-  const live: boolean[] = [];
-  for (const h of hits) {
-    if (!h) {
-      positions.push(0, 0, 0);
-      inner.push(0, 0, 0);
-      live.push(false);
-      continue;
+  const indices: number[] = [];
+
+  for (const ring of rings) {
+    for (let j = 0; j <= segs; j += 1) {
+      const a = (j / segs) * Math.PI * 2;
+      const c = Math.cos(a);
+      const s = Math.sin(a);
+      const x = side * ring.cx + ring.rx * c;
+      const z = s >= 0 ? ring.rzFront * s ** 0.52 : ring.rzBack * s;
+      positions.push(x, ring.y, z);
     }
-    const [x, y, z] = h;
-    const [nx, ny, nz] = fieldGrad(x, y, z);
-    positions.push(x, y, z);
-    inner.push(x - nx * 0.034, y - ny * 0.034, z - nz * 0.034);
-    live.push(true);
   }
 
-  const frontCount = positions.length / 3;
-  positions.push(...inner);
-
-  const indices: number[] = [];
-  const quad = (a: number, b: number, c: number, d: number): void => {
-    indices.push(a, c, b, b, c, d);
-  };
-  for (let i = 0; i < nv; i += 1) {
-    for (let j = 0; j < nu; j += 1) {
+  const last = rings.length - 1;
+  for (let i = 0; i < last; i += 1) {
+    for (let j = 0; j < segs; j += 1) {
       const a = i * cols + j;
       const b = a + 1;
       const c = a + cols;
       const d = c + 1;
-      if (!live[a] || !live[b] || !live[c] || !live[d]) continue;
-      quad(a, b, c, d);
-      quad(frontCount + b, frontCount + a, frontCount + d, frontCount + c);
+      indices.push(a, c, b, b, c, d);
     }
+  }
+
+  const topCenter = positions.length / 3;
+  positions.push(side * rings[0].cx, rings[0].y, 0);
+  const botCenter = positions.length / 3;
+  positions.push(side * rings[last].cx, rings[last].y, 0);
+  for (let j = 0; j < segs; j += 1) {
+    indices.push(topCenter, j, j + 1);
+    const b = last * cols + j;
+    indices.push(botCenter, b + 1, b);
   }
 
   const geo = new THREE.BufferGeometry();
@@ -245,22 +149,63 @@ export function createPecShell(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Fitted black abdomen. Fills the empty triangles under the pec hem. */
+function mergeGeos(geos: THREE.BufferGeometry[]): THREE.BufferGeometry {
+  const positions: number[] = [];
+  const indices: number[] = [];
+  for (const geo of geos) {
+    const off = positions.length / 3;
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i += 1) {
+      positions.push(pos.getX(i), pos.getY(i), pos.getZ(i));
+    }
+    const idx = geo.getIndex();
+    if (!idx) continue;
+    for (let i = 0; i < idx.count; i += 1) indices.push(idx.getX(i) + off);
+    geo.dispose();
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/**
+ * Smooth pec-to-deltoid wrap. Two lofted halves meet at the sternum and
+ * open a U that the neck sits in. Not an extracted silhouette.
+ */
+export function createPecShell(): THREE.BufferGeometry {
+  const rings: BodyRing[] = [
+    { y: 0.368, cx: 0.116, rx: 0.066, rzFront: 0.042, rzBack: 0.018 },
+    { y: 0.338, cx: 0.172, rx: 0.09, rzFront: 0.052, rzBack: 0.02 },
+    { y: 0.304, cx: 0.248, rx: 0.11, rzFront: 0.062, rzBack: 0.022 },
+    { y: 0.264, cx: 0.326, rx: 0.084, rzFront: 0.074, rzBack: 0.028 },
+    { y: 0.222, cx: 0.298, rx: 0.104, rzFront: 0.08, rzBack: 0.026 },
+    { y: 0.176, cx: 0.208, rx: 0.13, rzFront: 0.088, rzBack: 0.028 },
+    { y: 0.122, cx: 0.142, rx: 0.138, rzFront: 0.094, rzBack: 0.026 },
+    { y: 0.066, cx: 0.13, rx: 0.118, rzFront: 0.072, rzBack: 0.022 },
+    { y: 0.014, cx: 0.116, rx: 0.096, rzFront: 0.05, rzBack: 0.018 },
+    { y: -0.026, cx: 0.102, rx: 0.066, rzFront: 0.032, rzBack: 0.014 },
+  ];
+  return mergeGeos([loftHalf(-1, rings, 40), loftHalf(1, rings, 40)]);
+}
+
+/** Solid fitted abdomen. Not a hollow ring cage. */
 export function createMidriff(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.205, 0.11),
-    new THREE.Vector2(0.188, 0.078),
-    new THREE.Vector2(0.162, 0.042),
-    new THREE.Vector2(0.138, 0.008),
-    new THREE.Vector2(0.128, -0.028),
-    new THREE.Vector2(0.136, -0.058),
-    new THREE.Vector2(0.152, -0.084),
+    new THREE.Vector2(0.198, 0.118),
+    new THREE.Vector2(0.178, 0.08),
+    new THREE.Vector2(0.152, 0.042),
+    new THREE.Vector2(0.132, 0.006),
+    new THREE.Vector2(0.126, -0.032),
+    new THREE.Vector2(0.138, -0.064),
+    new THREE.Vector2(0.155, -0.09),
   ];
-  const geo = new THREE.LatheGeometry(profile, 28);
+  const geo = new THREE.LatheGeometry(profile, 32);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const z = pos.getZ(i);
-    pos.setZ(i, z > 0 ? z * 0.82 : z * 0.7);
+    pos.setZ(i, z > 0 ? z * 0.88 : z * 0.78);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -320,8 +265,8 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
     rings.push({
       y: -t * length,
       rx: 0.078 + quad * 0.02 - t * 0.01,
-      rzFront: 0.168 + quad * 0.078 - t * 0.02,
-      rzBack: 0.042 + quad * 0.012 - t * 0.008,
+      rzFront: 0.182 + quad * 0.09 - t * 0.022,
+      rzBack: 0.034 + quad * 0.01 - t * 0.006,
       ridge: 0.003 * quad,
       lip: i === 0 || i === steps ? 0.92 : 1,
       power: 0.42,
@@ -356,69 +301,6 @@ export function createShinShell(length: number): THREE.BufferGeometry {
     });
   }
   return loftArmor(rings, 28);
-}
-
-/** One hand-shaped mass: flat palm, four long fingers, thumb. */
-export function createHandSilhouette(side: number): THREE.BufferGeometry {
-  const field = (x: number, y: number): number => {
-    let d = ellip2(x, y, 0, -0.028, 0.034, 0.026);
-    const digits: Array<[number, number, number, number, number]> = [
-      [-0.024, -0.048, -0.028, -0.092, 0.008],
-      [-0.008, -0.05, -0.008, -0.102, 0.009],
-      [0.008, -0.05, 0.01, -0.098, 0.0085],
-      [0.022, -0.046, 0.027, -0.084, 0.0075],
-    ];
-    for (const [ax, ay, bx, by, r] of digits) {
-      d = smin(d, capsule2(x, y, ax, ay, bx, by, r), 0.005);
-    }
-    d = smin(d, capsule2(x, y, side * 0.018, -0.016, side * 0.044, -0.05, 0.009), 0.006);
-    return d;
-  };
-
-  const nu = 36;
-  const nv = 40;
-  const x0 = -0.06;
-  const x1 = 0.06;
-  const y0 = 0.01;
-  const y1 = -0.12;
-  const cols = nu + 1;
-  const positions: number[] = [];
-  const live: boolean[] = [];
-  for (let iv = 0; iv <= nv; iv += 1) {
-    const y = y0 + (iv / nv) * (y1 - y0);
-    for (let iu = 0; iu <= nu; iu += 1) {
-      const x = x0 + (iu / nu) * (x1 - x0);
-      const d = field(x, y);
-      if (d > 0) {
-        positions.push(0, y, 0);
-        live.push(false);
-        continue;
-      }
-      const z = 0.022 * Math.max(0.35, 1 + d / 0.014);
-      positions.push(x, y, z);
-      live.push(true);
-    }
-  }
-  const frontCount = positions.length / 3;
-  const inner = positions.map((v, i) => (i % 3 === 2 ? -v * 0.55 : v));
-  positions.push(...inner);
-  const indices: number[] = [];
-  for (let i = 0; i < nv; i += 1) {
-    for (let j = 0; j < nu; j += 1) {
-      const a = i * cols + j;
-      const b = a + 1;
-      const c = a + cols;
-      const d = c + 1;
-      if (!live[a] || !live[b] || !live[c] || !live[d]) continue;
-      indices.push(a, c, b, b, c, d);
-      indices.push(frontCount + b, frontCount + a, frontCount + d, frontCount + c);
-    }
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
 }
 
 /** White kneecap on the front of the joint. */

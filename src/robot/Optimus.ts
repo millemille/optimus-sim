@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
-  createHandSilhouette,
   createKneeCap,
   createLimbShell,
   createMidriff,
@@ -159,11 +158,6 @@ export class Optimus {
       motor.position.set(side * 0.085, 0.025, 0.012);
       this.hips.add(motor);
 
-      const cup = this.mesh(new THREE.SphereGeometry(0.055, 16, 12, 0, Math.PI, 0, Math.PI), this.mats.white);
-      cup.scale.set(0.72, 0.85, 0.95);
-      cup.rotation.y = side * (Math.PI / 2);
-      cup.position.set(side * 0.11, -0.012, 0.016);
-      this.hips.add(cup);
     }
   }
 
@@ -175,21 +169,14 @@ export class Optimus {
     this.chest.add(pecs);
 
     const waist = this.mesh(createMidriff(), this.mats.matte);
-    waist.position.y = 0.018;
+    waist.position.y = 0.012;
     this.chest.add(waist);
-
-    for (let i = 0; i < 4; i += 1) {
-      const ring = this.mesh(new THREE.TorusGeometry(0.168 - i * 0.012, 0.008, 8, 24), this.mats.metal);
-      ring.rotation.x = Math.PI / 2;
-      ring.position.y = 0.078 - i * 0.032;
-      this.chest.add(ring);
-    }
   }
 
   private buildNeck(): void {
-    const column = this.mesh(new THREE.CylinderGeometry(0.042, 0.05, 0.13, 20), this.mats.matte);
+    const column = this.mesh(new THREE.CylinderGeometry(0.044, 0.052, 0.16, 20), this.mats.matte);
     column.name = "neckColumn";
-    column.position.set(0, 0.392, 0.008);
+    column.position.set(0, 0.372, 0.01);
     this.chest.add(column);
   }
 
@@ -252,12 +239,35 @@ export class Optimus {
 
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
-    const core = this.mesh(createHandSilhouette(side), this.mats.matte);
-    g.add(core);
-    const shell = this.mesh(createHandSilhouette(side), this.mats.white);
-    shell.scale.set(0.9, 0.92, 0.55);
-    shell.position.z = 0.01;
-    g.add(shell);
+
+    const palm = this.panel(0.07, 0.046, 0.026, this.mats.matte, 0.014);
+    palm.position.set(0, -0.028, 0);
+    g.add(palm);
+    const dorsal = this.panel(0.062, 0.036, 0.006, this.mats.white, 0.01);
+    dorsal.position.set(0, -0.024, 0.014);
+    g.add(dorsal);
+
+    const xs = [-0.025, -0.008, 0.009, 0.025];
+    const lens = [0.052, 0.06, 0.056, 0.044];
+    for (let i = 0; i < 4; i += 1) {
+      const core = this.mesh(new THREE.CapsuleGeometry(0.0072, lens[i] * 0.42, 4, 8), this.mats.matte);
+      core.position.set(xs[i], -0.05 - lens[i] * 0.28, 0.001);
+      core.rotation.x = 0.32 + i * 0.03;
+      g.add(core);
+      const plate = this.panel(0.012, lens[i] * 0.7, 0.0045, this.mats.white, 0.003);
+      plate.position.set(xs[i], -0.048 - lens[i] * 0.26, 0.011);
+      plate.rotation.x = 0.32 + i * 0.03;
+      g.add(plate);
+    }
+
+    const thumb = this.mesh(new THREE.CapsuleGeometry(0.007, 0.022, 4, 8), this.mats.matte);
+    thumb.position.set(side * 0.034, -0.02, 0.006);
+    thumb.rotation.set(0.28, side * 0.45, side * 0.7);
+    g.add(thumb);
+    const tPlate = this.panel(0.01, 0.028, 0.004, this.mats.white, 0.003);
+    tPlate.position.set(side * 0.036, -0.022, 0.014);
+    tPlate.rotation.set(0.28, side * 0.45, side * 0.7);
+    g.add(tPlate);
     return g;
   }
 
