@@ -48,11 +48,11 @@ export function createPecShell(): THREE.BufferGeometry {
   for (let iy = 0; iy <= segsV; iy += 1) {
     const t = iy / segsV;
     const y = t * 0.32;
-    let rMax = 0.1;
-    if (t < 0.14) rMax = 0.1 + (t / 0.14) * 0.12;
-    else if (t < 0.42) rMax = 0.22 + ((t - 0.14) / 0.28) * 0.055;
-    else if (t < 0.88) rMax = 0.275;
-    else rMax = 0.275 - ((t - 0.88) / 0.12) * 0.02;
+    let rMax = 0.11;
+    if (t < 0.12) rMax = 0.11 + (t / 0.12) * 0.1;
+    else if (t < 0.38) rMax = 0.21 + ((t - 0.12) / 0.26) * 0.07;
+    else if (t < 0.9) rMax = 0.3;
+    else rMax = 0.3 - ((t - 0.9) / 0.1) * 0.03;
 
     for (let ix = 0; ix <= segsU; ix += 1) {
       const a = (ix / segsU) * Math.PI * 2;
@@ -97,9 +97,9 @@ export function createDeltoid(): THREE.BufferGeometry {
 
   for (let i = 0; i <= rings; i += 1) {
     const t = i / rings;
-    const y = 0.055 - t * 0.24;
-    const rx = 0.138 - t * 0.055;
-    const rz = 0.11 - t * 0.04;
+    const y = 0.06 - t * 0.26;
+    const rx = 0.125 - t * 0.042;
+    const rz = 0.115 - t * 0.038;
     for (let j = 0; j <= radial; j += 1) {
       const a = (j / radial) * Math.PI * 2;
       const x = rx * Math.cos(a);
@@ -181,10 +181,10 @@ export function createThighShell(length: number): THREE.BufferGeometry {
     const t = i / rings;
     const y = -t * length;
     const lip = i === 0 || i === rings ? 0.9 : 1;
-    const rx = (0.108 - t * 0.028) * lip;
+    const rx = (0.122 - t * 0.03) * lip;
     const quad = Math.exp(-(((t - 0.3) / 0.26) ** 2));
-    const rzFront = (0.142 + quad * 0.028) * lip;
-    const rzBack = 0.052 * lip;
+    const rzFront = (0.16 + quad * 0.035) * lip;
+    const rzBack = 0.05 * lip;
     for (let j = 0; j <= radial; j += 1) {
       const a = (j / radial) * Math.PI * 2;
       const s = Math.sin(a);
@@ -217,10 +217,10 @@ export function createShinShell(length: number): THREE.BufferGeometry {
     const t = i / rings;
     const y = -t * length;
     const lip = i === 0 || i === rings ? 0.9 : 1;
-    const rx = (0.086 - t * 0.02) * lip;
-    const ridge = 1 + Math.max(0, 1 - Math.abs(t - 0.4) * 2) * 0.18;
-    const rzFront = 0.1 * ridge * lip;
-    const rzBack = 0.042 * lip;
+    const rx = (0.096 - t * 0.022) * lip;
+    const ridge = 1 + Math.max(0, 1 - Math.abs(t - 0.4) * 2) * 0.22;
+    const rzFront = 0.115 * ridge * lip;
+    const rzBack = 0.04 * lip;
     for (let j = 0; j <= radial; j += 1) {
       const a = (j / radial) * Math.PI * 2;
       const s = Math.sin(a);
@@ -245,14 +245,14 @@ export function createShinShell(length: number): THREE.BufferGeometry {
  */
 export function createMittenDorsal(): THREE.BufferGeometry {
   const shape = new THREE.Shape();
-  const half = 0.058;
-  shape.moveTo(-half * 0.84, 0.012);
-  shape.lineTo(-half, -0.055);
-  shape.lineTo(-half * 1.04, -0.13);
+  const half = 0.072;
+  shape.moveTo(-half * 0.84, 0.014);
+  shape.lineTo(-half, -0.06);
+  shape.lineTo(-half * 1.05, -0.145);
 
-  const tips = [-0.0435, -0.0145, 0.0145, 0.0435];
-  const tipY = -0.198;
-  const tipR = 0.015;
+  const tips = [-0.054, -0.018, 0.018, 0.054];
+  const tipY = -0.235;
+  const tipR = 0.0185;
   for (const x of tips) {
     shape.lineTo(x - tipR, tipY + tipR * 0.35);
     shape.absarc(x, tipY, tipR, Math.PI, 0, false);

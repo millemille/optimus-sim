@@ -205,12 +205,12 @@ export class Optimus {
 
   private arm(side: number): THREE.Group {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.232, 0.255, 0.012);
+    shoulder.position.set(side * 0.248, 0.258, 0.014);
     this.chest.add(shoulder);
 
     const deltoid = this.mesh(createDeltoid(), this.mats.white);
     deltoid.name = side < 0 ? "pauldronL" : "pauldronR";
-    deltoid.position.set(side * 0.018, 0.002, 0.006);
+    deltoid.position.set(side * 0.012, 0.004, 0.008);
     shoulder.add(deltoid);
 
     const socket = this.mesh(new THREE.SphereGeometry(0.012, 8, 6), this.mats.joint);
@@ -257,31 +257,31 @@ export class Optimus {
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
 
-    const palm = this.panel(0.1, 0.175, 0.02, this.mats.matte, 0.012);
-    palm.position.set(0, -0.09, -0.01);
+    const palm = this.panel(0.12, 0.2, 0.02, this.mats.matte, 0.012);
+    palm.position.set(0, -0.1, -0.01);
     g.add(palm);
 
     const mitten = this.mesh(createMittenDorsal(), this.mats.white);
-    mitten.position.set(0, -0.012, 0.004);
+    mitten.position.set(0, -0.01, 0.006);
     g.add(mitten);
 
-    const xs = [-0.0435, -0.0145, 0.0145, 0.0435];
+    const xs = [-0.054, -0.018, 0.018, 0.054];
     for (const x of xs) {
-      const tip = this.panel(0.012, 0.01, 0.01, this.mats.matte, 0.003);
-      tip.position.set(x, -0.218, 0.01);
+      const tip = this.panel(0.01, 0.008, 0.008, this.mats.matte, 0.002);
+      tip.position.set(x, -0.256, 0.012);
       g.add(tip);
     }
 
-    const thumb = this.panel(0.034, 0.088, 0.022, this.mats.white, 0.01);
-    thumb.rotation.z = side * -0.58;
-    thumb.position.set(side * 0.058, -0.042, 0.014);
+    const thumb = this.panel(0.04, 0.1, 0.024, this.mats.white, 0.012);
+    thumb.rotation.z = side * -0.55;
+    thumb.position.set(side * 0.07, -0.048, 0.016);
     g.add(thumb);
     return g;
   }
 
   private leg(side: number): THREE.Group {
     const hip = new THREE.Group();
-    hip.position.set(side * 0.128, -0.028, 0);
+    hip.position.set(side * 0.138, -0.028, 0);
     this.hips.add(hip);
 
     const ball = this.mesh(new THREE.SphereGeometry(0.028, 12, 10), this.mats.joint);
