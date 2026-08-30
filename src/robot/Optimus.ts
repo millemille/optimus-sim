@@ -255,8 +255,8 @@ export class Optimus {
     const core = this.mesh(createHandSilhouette(side), this.mats.matte);
     g.add(core);
     const shell = this.mesh(createHandSilhouette(side), this.mats.white);
-    shell.scale.set(0.92, 0.94, 0.42);
-    shell.position.z = 0.012;
+    shell.scale.set(0.9, 0.92, 0.55);
+    shell.position.z = 0.01;
     g.add(shell);
     return g;
   }

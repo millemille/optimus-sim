@@ -134,21 +134,23 @@ function capsule2(
 function torsoField(x: number, y: number, z: number): number {
   const ax = Math.abs(x);
   const pec = ellip2(ax, y, 0.112, 0.098, 0.136, 0.102);
-  const del = ellip2(ax, y, 0.34, 0.246, 0.078, 0.066);
-  const wrap = capsule2(ax, y, 0.176, 0.112, 0.292, 0.198, 0.046);
+  const del = ellip2(ax, y, 0.336, 0.228, 0.08, 0.086);
+  const wrap = capsule2(ax, y, 0.176, 0.112, 0.286, 0.188, 0.05);
+  const clav = ellip2(ax, y, 0.09, 0.188, 0.072, 0.048);
   let d2 = smin(smin(pec, del, 0.05), wrap, 0.038);
+  d2 = smin(d2, clav, 0.04);
 
-  if (y > 0.178) {
-    const well = 0.148 + (y - 0.178) * 2.35;
-    d2 = smax(d2, well - ax, 0.03);
+  if (y > 0.2) {
+    const well = 0.1 + (y - 0.2) * 2.6;
+    d2 = smax(d2, well - ax, 0.028);
   }
-  if (y < 0.208 && ax > 0.255) {
-    const pit = (0.208 - y) * 2.6 - (0.355 - ax);
-    d2 = smax(d2, pit, 0.024);
+  if (y < 0.2 && ax > 0.236 && ax < 0.312) {
+    const pit = (0.2 - y) * 2.1 - Math.abs(ax - 0.274) * 0.35;
+    d2 = smax(d2, pit, 0.022);
   }
 
   const pecW = Math.exp(-((ax - 0.112) ** 2) / 0.016 - ((y - 0.098) ** 2) / 0.012);
-  const delW = Math.exp(-((ax - 0.34) ** 2) / 0.01 - ((y - 0.246) ** 2) / 0.008);
+  const delW = Math.exp(-((ax - 0.336) ** 2) / 0.01 - ((y - 0.228) ** 2) / 0.01);
   const cleft = Math.exp(-(ax ** 2) / 0.0032) * Math.max(0, 1 - Math.abs(y - 0.1) / 0.1);
   const zThick = 0.038 + 0.062 * pecW + 0.04 * delW - 0.022 * cleft;
   const zMid = 0.032 + 0.038 * pecW + 0.012 * delW;
@@ -392,7 +394,7 @@ export function createHandSilhouette(side: number): THREE.BufferGeometry {
         live.push(false);
         continue;
       }
-      const z = 0.016 * Math.max(0, 1 + d / 0.012);
+      const z = 0.022 * Math.max(0.35, 1 + d / 0.014);
       positions.push(x, y, z);
       live.push(true);
     }
