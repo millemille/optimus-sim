@@ -1,0 +1,117 @@
+import * as THREE from "three";
+import { Factory } from "../world/Factory.ts";
+import { Hud } from "../ui/hud.ts";
+import { CameraRig } from "./CameraRig.ts";
+import { Input } from "./Input.ts";
+import { Mission } from "./Mission.ts";
+import { Player } from "./Player.ts";
+
+export class Game {
+  private readonly renderer: THREE.WebGLRenderer;
+  private readonly scene = new THREE.Scene();
+  private readonly camera: THREE.PerspectiveCamera;
+  private readonly input: Input;
+  private readonly cameraRig: CameraRig;
+  private readonly player = new Player();
+  private readonly factory = new Factory();
+  private readonly mission: Mission;
+  private readonly hud: Hud;
+  private readonly clock = new THREE.Clock();
+  private playing = false;
+  private started = false;
+  private raf = 0;
+
+  constructor(private readonly canvas: HTMLCanvasElement) {
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      powerPreference: "high-performance",
+    });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    this.camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.08, 80);
+    this.cameraRig = new CameraRig(this.camera);
+    this.input = new Input(canvas);
+    this.mission = new Mission(this.factory, this.player);
+    this.hud = new Hud(() => this.requestLock());
+
+    this.scene.background = new THREE.Color(0x121214);
+    this.scene.fog = new THREE.Fog(0x121214, 12, 28);
+    this.scene.add(this.factory.group);
+    this.scene.add(this.player.robot.root);
+
+    this.cameraRig.yaw = Math.PI;
+    this.cameraRig.update(this.player.position);
+    this.hud.sync(this.mission);
+
+    window.addEventListener("resize", this.onResize);
+    document.addEventListener("pointerlockchange", this.onLock);
+    document.addEventListener("pointerlockerror", this.onLockError);
+  }
+
+  start(): void {
+    this.clock.start();
+    const tick = (): void => {
+      this.raf = requestAnimationFrame(tick);
+      this.frame();
+    };
+    tick();
+  }
+
+  dispose(): void {
+    cancelAnimationFrame(this.raf);
+    window.removeEventListener("resize", this.onResize);
+    document.removeEventListener("pointerlockchange", this.onLock);
+    document.removeEventListener("pointerlockerror", this.onLockError);
+    this.input.dispose();
+    this.renderer.dispose();
+  }
+
+  private requestLock(): void {
+    this.canvas.requestPointerLock();
+  }
+
+  private readonly onLock = (): void => {
+    this.playing = document.pointerLockElement === this.canvas;
+    if (this.playing) {
+      this.started = true;
+      this.hud.showPlaying();
+    } else {
+      this.hud.showPaused(this.started);
+    }
+  };
+
+  private readonly onLockError = (): void => {
+    this.hud.showPaused(this.started);
+  };
+
+  private readonly onResize = (): void => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(w, h);
+  };
+
+  private frame(): void {
+    const dt = Math.min(this.clock.getDelta(), 0.05);
+    if (this.playing) {
+      const look = this.input.consumeLook();
+      this.cameraRig.applyLook(look.x, look.y);
+      this.player.update(dt, this.input, this.cameraRig.yaw, this.factory.obstacles);
+      if (this.input.consumeUse()) this.mission.tryUse();
+    } else {
+      this.input.consumeLook();
+      this.input.consumeUse();
+    }
+    this.cameraRig.update(this.player.position);
+    this.hud.sync(this.mission);
+    this.renderer.render(this.scene, this.camera);
+  }
+}
