@@ -208,7 +208,7 @@ export class Optimus {
 
   private arm(side: number): THREE.Group {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.255, 0.248, 0.018);
+    shoulder.position.set(side * 0.262, 0.25, 0.018);
     this.chest.add(shoulder);
 
     const deltoid = this.mesh(createDeltoid(), this.mats.white);

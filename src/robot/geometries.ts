@@ -106,8 +106,8 @@ function torsoSample(u: number, v: number): [number, number, number] {
   let hw: number;
   if (v < 0.2) hw = 0.112 + (v / 0.2) * 0.07;
   else if (v < 0.48) hw = 0.182 + ((v - 0.2) / 0.28) * 0.078;
-  else if (v < 0.78) hw = 0.26 + ((v - 0.48) / 0.3) * 0.09;
-  else hw = 0.35 - ((v - 0.78) / 0.22) * 0.03 * (1 - au);
+  else if (v < 0.78) hw = 0.26 + ((v - 0.48) / 0.3) * 0.115;
+  else hw = 0.375 - ((v - 0.78) / 0.22) * 0.025 * (1 - au);
 
   let y = 0.012 + v * 0.318;
   if (v > 0.74 && au < 0.42) {
