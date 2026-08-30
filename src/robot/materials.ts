@@ -2,8 +2,7 @@ import * as THREE from "three";
 
 export type RobotMaterials = {
   white: THREE.MeshStandardMaterial;
-  visor: THREE.MeshStandardMaterial;
-  skull: THREE.MeshStandardMaterial;
+  skull: THREE.MeshPhysicalMaterial;
   joint: THREE.MeshStandardMaterial;
   matte: THREE.MeshStandardMaterial;
   metal: THREE.MeshStandardMaterial;
@@ -13,40 +12,42 @@ export type RobotMaterials = {
 export function createRobotMaterials(): RobotMaterials {
   return {
     white: new THREE.MeshStandardMaterial({
-      color: 0xf2f0e8,
-      roughness: 0.68,
-      metalness: 0.02,
-    }),
-    visor: new THREE.MeshStandardMaterial({
-      color: 0x060709,
-      roughness: 0.18,
-      metalness: 0.12,
-      envMapIntensity: 0.22,
-    }),
-    skull: new THREE.MeshStandardMaterial({
-      color: 0x0c0c0e,
+      color: 0xeeebe3,
       roughness: 0.72,
-      metalness: 0.08,
+      metalness: 0.02,
+      envMapIntensity: 0.15,
+    }),
+    skull: new THREE.MeshPhysicalMaterial({
+      color: 0x0c0d10,
+      roughness: 0.28,
+      metalness: 0,
+      clearcoat: 0.7,
+      clearcoatRoughness: 0.18,
+      envMapIntensity: 0,
     }),
     joint: new THREE.MeshStandardMaterial({
       color: 0x161618,
-      roughness: 0.48,
-      metalness: 0.32,
+      roughness: 0.52,
+      metalness: 0.28,
+      envMapIntensity: 0.1,
     }),
     matte: new THREE.MeshStandardMaterial({
-      color: 0x101012,
-      roughness: 0.8,
-      metalness: 0.06,
+      color: 0x121214,
+      roughness: 0.82,
+      metalness: 0.04,
+      envMapIntensity: 0,
     }),
     metal: new THREE.MeshStandardMaterial({
       color: 0x2a2a2e,
-      roughness: 0.4,
-      metalness: 0.58,
+      roughness: 0.42,
+      metalness: 0.55,
+      envMapIntensity: 0.15,
     }),
     actuator: new THREE.MeshStandardMaterial({
       color: 0x1c1c20,
-      roughness: 0.38,
-      metalness: 0.62,
+      roughness: 0.4,
+      metalness: 0.55,
+      envMapIntensity: 0.1,
     }),
   };
 }

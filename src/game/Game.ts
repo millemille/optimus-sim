@@ -49,14 +49,17 @@ export class Game {
     this.scene.add(this.factory.group);
     this.scene.add(this.player.robot.root);
 
-    const pmrem = new THREE.PMREMGenerator(this.renderer);
-    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    pmrem.dispose();
+    if (!this.studio) {
+      const pmrem = new THREE.PMREMGenerator(this.renderer);
+      this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+      pmrem.dispose();
+    }
 
     if (this.studio) {
-      this.renderer.toneMappingExposure = 1.05;
+      this.scene.environment = null;
+      this.renderer.toneMappingExposure = 0.92;
       this.scene.fog = null;
-      this.scene.background = new THREE.Color(0x6a6864);
+      this.scene.background = new THREE.Color(0x5c5a56);
       this.factory.group.visible = false;
       applyStudioLights(this.scene, this.player.position);
       const floor = new THREE.Mesh(
