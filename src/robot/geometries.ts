@@ -96,96 +96,120 @@ function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
   return geo;
 }
 
-function clamp01(t: number): number {
-  return Math.min(1, Math.max(0, t));
+function smin(a: number, b: number, k: number): number {
+  const h = Math.max(k - Math.abs(a - b), 0) / k;
+  return Math.min(a, b) - h * h * k * 0.25;
 }
 
-function smoothstep(e0: number, e1: number, x: number): number {
-  const t = clamp01((x - e0) / (e1 - e0));
-  return t * t * (3 - 2 * t);
+function smax(a: number, b: number, k: number): number {
+  const h = Math.max(k - Math.abs(a - b), 0) / k;
+  return Math.max(a, b) + h * h * k * 0.25;
+}
+
+function ellip(
+  x: number,
+  y: number,
+  z: number,
+  cx: number,
+  cy: number,
+  cz: number,
+  rx: number,
+  ry: number,
+  rz: number,
+): number {
+  return Math.hypot((x - cx) / rx, (y - cy) / ry, (z - cz) / rz) - 1;
 }
 
 /**
- * Torso, not a T-bar. Center is a pec V. Outer is a deltoid that
- * dumps down the arm. Widest at mid-shoulder (~0.40).
+ * Two tall pecs + two deltoid caps that wrap down the arm.
+ * Not a wide bar, not a yoke across the top.
  */
-function vestSurf(ang: number, v: number): [number, number, number] {
-  const a = ang / 2.25;
-  const outer = smoothstep(0.22, 0.68, Math.abs(a));
-  const yDel = 0.252;
-  const xDel = 0.316;
-  const rDel = 0.086;
-  const collar = 0.274;
+function torsoField(x: number, y: number, z: number): number {
+  const pecL = ellip(x, y, z, -0.108, 0.152, 0.06, 0.15, 0.14, 0.08);
+  const pecR = ellip(x, y, z, 0.108, 0.152, 0.06, 0.15, 0.14, 0.08);
+  const delL = ellip(x, y, z, -0.314, 0.226, 0.018, 0.088, 0.1, 0.08);
+  const delR = ellip(x, y, z, 0.314, 0.226, 0.018, 0.088, 0.1, 0.08);
+  const slL = ellip(x, y, z, -0.298, 0.055, 0.006, 0.06, 0.128, 0.048);
+  const slR = ellip(x, y, z, 0.298, 0.055, 0.006, 0.06, 0.128, 0.048);
 
-  const xApprox = Math.sin(ang) * 0.4;
-  const dx = Math.abs(xApprox) - xDel;
-  let yTop = collar;
-  if (dx * dx < rDel * rDel) {
-    yTop = Math.max(collar, yDel + Math.sqrt(rDel * rDel - dx * dx));
+  let d = smin(pecL, pecR, 0.032);
+  d = smin(d, smin(delL, delR, 0.038), 0.048);
+  d = smin(d, smin(slL, slR, 0.04), 0.05);
+
+  if (y > 0.235) {
+    const well = Math.hypot(x / 0.088, (z - 0.008) / 0.065) - 1;
+    d = smax(d, -well + (y - 0.235) * 2.1, 0.028);
   }
-  if (Math.abs(a) > 0.72) {
-    const o = (Math.abs(a) - 0.72) / 0.28;
-    yTop -= o * o * 0.055;
+  d = smax(d, -z - 0.022, 0.02);
+  return d;
+}
+
+function fieldGrad(x: number, y: number, z: number): [number, number, number] {
+  const e = 0.0026;
+  const dx = torsoField(x + e, y, z) - torsoField(x - e, y, z);
+  const dy = torsoField(x, y + e, z) - torsoField(x, y - e, z);
+  const dz = torsoField(x, y, z + e) - torsoField(x, y, z - e);
+  const n = Math.hypot(dx, dy, dz) || 1;
+  return [dx / n, dy / n, dz / n];
+}
+
+function marchHit(y: number, ang: number): [number, number, number] | null {
+  const dx = Math.sin(ang);
+  const dz = Math.cos(ang);
+  let t = 0.55;
+  let prev = torsoField(dx * t, y, 0.018 + dz * t);
+  for (let i = 0; i < 100; i += 1) {
+    t -= 0.006;
+    if (t < 0.015) break;
+    const x = dx * t;
+    const z = 0.018 + dz * t;
+    const d = torsoField(x, y, z);
+    if (prev > 0 && d <= 0) {
+      const f = prev / (prev - d);
+      const tt = t + 0.006 - f * 0.006;
+      return [dx * tt, y, 0.018 + dz * tt];
+    }
+    prev = d;
   }
-
-  const yBot = 0.058 - outer * 0.125;
-  const y = yBot + v * (yTop - yBot);
-
-  const pecW = 0.152 + smoothstep(0.04, 0.22, y) * 0.178;
-  const dy = y - yDel;
-  let sleeveW: number;
-  if (y >= yDel - 0.015 && dy * dy < rDel * rDel) {
-    sleeveW = xDel + Math.sqrt(Math.max(0, rDel * rDel - dy * dy));
-  } else if (y < yDel) {
-    sleeveW = 0.198 + smoothstep(-0.07, yDel, y) * 0.202;
-  } else {
-    sleeveW = 0.3;
-  }
-  let hw = pecW + (Math.max(sleeveW, pecW) - pecW) * outer;
-
-  if (y > 0.248 && Math.abs(a) < 0.28) {
-    const t = clamp01((y - 0.248) / 0.07);
-    const c = 1 - Math.abs(a) / 0.28;
-    hw -= t * t * c * c * 0.09;
-    hw = Math.max(0.08, hw);
-  }
-
-  const pec =
-    Math.exp(-((Math.abs(a) - 0.26) ** 2) / 0.11) * Math.exp(-((v - 0.55) ** 2) / 0.16);
-  const sternum = Math.exp(-(a * a) / 0.03) * 0.012 * (1 - v * 0.35);
-  let hz = 0.04 + pec * 0.07 - sternum;
-  hz *= 0.48 + 0.52 * Math.sin(Math.max(0.08, v) * Math.PI);
-  if (outer > 0.45 && Math.abs(y - yDel) < 0.09) hz += 0.022;
-
-  const wrap = Math.max(0.16, Math.cos(ang * 0.34));
-  return [Math.sin(ang) * hw, y, hz * wrap];
+  return null;
 }
 
 export function createPecShell(): THREE.BufferGeometry {
-  const nu = 64;
-  const nv = 44;
-  const a0 = -2.25;
-  const a1 = 2.25;
+  const nu = 68;
+  const nv = 48;
+  const a0 = -2.3;
+  const a1 = 2.3;
+  const y0 = -0.06;
+  const y1 = 0.34;
   const cols = nu + 1;
-  const positions: number[] = [];
+  const hits: Array<[number, number, number] | null> = [];
 
   for (let iv = 0; iv <= nv; iv += 1) {
-    const v = iv / nv;
+    const y = y0 + (iv / nv) * (y1 - y0);
     for (let iu = 0; iu <= nu; iu += 1) {
-      const [x, y, z] = vestSurf(a0 + (iu / nu) * (a1 - a0), v);
-      positions.push(x, y, z);
+      hits.push(marchHit(y, a0 + (iu / nu) * (a1 - a0)));
     }
   }
+
+  const positions: number[] = [];
+  const inner: number[] = [];
+  const live: boolean[] = [];
+  for (const h of hits) {
+    if (!h) {
+      positions.push(0, 0, 0);
+      inner.push(0, 0, 0);
+      live.push(false);
+      continue;
+    }
+    const [x, y, z] = h;
+    const [nx, ny, nz] = fieldGrad(x, y, z);
+    positions.push(x, y, z);
+    inner.push(x - nx * 0.036, y - ny * 0.036, z - nz * 0.036);
+    live.push(true);
+  }
+
   const frontCount = positions.length / 3;
-  for (let iv = 0; iv <= nv; iv += 1) {
-    const v = iv / nv;
-    for (let iu = 0; iu <= nu; iu += 1) {
-      const [x, y, z] = vestSurf(a0 + (iu / nu) * (a1 - a0), v);
-      // Pull the inner face to a spine so the pec is a solid mass.
-      // A 3cm shell rim reads as a shelf from the studio camera.
-      positions.push(x * 0.18, y * 0.94 + 0.012, Math.min(z * 0.12, 0.012));
-    }
-  }
+  positions.push(...inner);
 
   const indices: number[] = [];
   const quad = (a: number, b: number, c: number, d: number): void => {
@@ -194,21 +218,21 @@ export function createPecShell(): THREE.BufferGeometry {
   for (let i = 0; i < nv; i += 1) {
     for (let j = 0; j < nu; j += 1) {
       const a = i * cols + j;
-      quad(a, a + 1, a + cols, a + cols + 1);
-      const bk = frontCount + a;
-      quad(bk + 1, bk, bk + cols + 1, bk + cols);
+      const b = a + 1;
+      const c = a + cols;
+      const d = c + 1;
+      if (!live[a] || !live[b] || !live[c] || !live[d]) continue;
+      quad(a, b, c, d);
+      quad(frontCount + b, frontCount + a, frontCount + d, frontCount + c);
     }
   }
   for (let i = 0; i < nv; i += 1) {
     const L = i * cols;
-    quad(frontCount + L, L, frontCount + L + cols, L + cols);
+    const L2 = L + cols;
+    if (live[L] && live[L2]) quad(frontCount + L, L, frontCount + L2, L2);
     const R = i * cols + nu;
-    quad(R, frontCount + R, R + cols, frontCount + R + cols);
-  }
-  for (let j = 0; j < nu; j += 1) {
-    quad(j + 1, j, frontCount + j + 1, frontCount + j);
-    const t = nv * cols + j;
-    quad(t, t + 1, frontCount + t, frontCount + t + 1);
+    const R2 = R + cols;
+    if (live[R] && live[R2]) quad(R, frontCount + R, R2, frontCount + R2);
   }
 
   const geo = new THREE.BufferGeometry();
@@ -270,8 +294,8 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
     const quad = Math.exp(-(((t - 0.26) / 0.22) ** 2));
     rings.push({
       y: -t * length,
-      rx: 0.08 + quad * 0.014 - t * 0.01,
-      rzFront: 0.138 + quad * 0.058 - t * 0.016,
+      rx: 0.078 + quad * 0.02 - t * 0.01,
+      rzFront: 0.145 + quad * 0.062 - t * 0.018,
       rzBack: 0.072 + quad * 0.02 - t * 0.01,
       ridge: 0.003 * quad,
       lip: i === 0 || i === steps ? 0.92 : 1,
@@ -318,10 +342,66 @@ export function createKneeCap(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Rounded palm mass. Not a wrist sphere with prongs hanging off it. */
-export function createPalm(): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(0.04, 22, 16);
-  geo.scale(1.48, 1.22, 0.74);
+function handField(x: number, y: number, z: number, side: number): number {
+  let d = ellip(x, y, z, 0, -0.032, 0.002, 0.044, 0.04, 0.028);
+  const digits: Array<[number, number, number, number, number, number]> = [
+    [-0.028, -0.082, 0.006, 0.014, 0.03, 0.013],
+    [-0.009, -0.092, 0.006, 0.015, 0.034, 0.014],
+    [0.01, -0.09, 0.006, 0.0145, 0.032, 0.0135],
+    [0.026, -0.078, 0.006, 0.013, 0.026, 0.012],
+  ];
+  for (const [cx, cy, cz, rx, ry, rz] of digits) {
+    d = smin(d, ellip(x, y, z, cx, cy, cz, rx, ry, rz), 0.011);
+  }
+  d = smin(d, ellip(x, y, z, side * 0.038, -0.018, 0.012, 0.013, 0.024, 0.013), 0.01);
+  return d;
+}
+
+/** One hand mass: palm plus finger lobes. Not capsules on a sphere. */
+export function createHandMass(side: number): THREE.BufferGeometry {
+  const nu = 28;
+  const nv = 32;
+  const cols = nu + 1;
+  const positions: number[] = [];
+  for (let iv = 0; iv <= nv; iv += 1) {
+    const v = iv / nv;
+    const y = 0.02 - v * 0.14;
+    for (let iu = 0; iu <= nu; iu += 1) {
+      const a = -Math.PI + (iu / nu) * Math.PI * 2;
+      let t = 0.12;
+      let hit: [number, number, number] | null = null;
+      let prev = handField(Math.sin(a) * t, y, Math.cos(a) * t, side);
+      for (let k = 0; k < 40; k += 1) {
+        t -= 0.004;
+        if (t < 0.002) break;
+        const x = Math.sin(a) * t;
+        const z = Math.cos(a) * t;
+        const d = handField(x, y, z, side);
+        if (prev > 0 && d <= 0) {
+          const f = prev / (prev - d);
+          const tt = t + 0.004 - f * 0.004;
+          hit = [Math.sin(a) * tt, y, Math.cos(a) * tt];
+          break;
+        }
+        prev = d;
+      }
+      if (hit) positions.push(hit[0], hit[1], hit[2]);
+      else positions.push(0, y, 0);
+    }
+  }
+  const indices: number[] = [];
+  for (let i = 0; i < nv; i += 1) {
+    for (let j = 0; j < nu; j += 1) {
+      const a = i * cols + j;
+      const b = a + 1;
+      const c = a + cols;
+      const d = c + 1;
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
   geo.computeVertexNormals();
   return geo;
 }

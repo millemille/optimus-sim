@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
+  createHandMass,
   createKneeCap,
   createLimbShell,
-  createPalm,
   createPecShell,
   createShinShell,
   createThighShell,
@@ -245,35 +245,13 @@ export class Optimus {
 
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
-
-    const palm = this.mesh(createPalm(), this.mats.matte);
-    palm.position.set(0, -0.034, 0);
-    g.add(palm);
-
-    const dorsal = this.mesh(createPalm(), this.mats.white);
-    dorsal.scale.set(0.88, 0.78, 0.42);
-    dorsal.position.set(0, -0.03, 0.018);
-    g.add(dorsal);
-
-    const digits = [
-      { x: -0.03, len: 0.046, r: 0.017, spread: 0.18, curl: 0.32 },
-      { x: -0.01, len: 0.056, r: 0.0185, spread: 0.05, curl: 0.24 },
-      { x: 0.01, len: 0.054, r: 0.018, spread: -0.05, curl: 0.26 },
-      { x: 0.028, len: 0.044, r: 0.016, spread: -0.2, curl: 0.36 },
-    ];
-    for (const d of digits) {
-      const f = this.mesh(new THREE.CapsuleGeometry(d.r, d.len, 6, 10), this.mats.white);
-      f.position.set(d.x, -0.072, 0.01);
-      f.rotation.z = d.spread;
-      f.rotation.x = d.curl;
-      g.add(f);
-    }
-
-    const thumb = this.mesh(new THREE.CapsuleGeometry(0.016, 0.034, 6, 10), this.mats.white);
-    thumb.position.set(side * 0.038, -0.018, 0.014);
-    thumb.rotation.z = side * -0.95;
-    thumb.rotation.x = 0.7;
-    g.add(thumb);
+    const core = this.mesh(createHandMass(side), this.mats.matte);
+    core.scale.set(0.88, 0.92, 0.82);
+    g.add(core);
+    const shell = this.mesh(createHandMass(side), this.mats.white);
+    shell.scale.set(1, 1, 0.72);
+    shell.position.z = 0.008;
+    g.add(shell);
     return g;
   }
 
