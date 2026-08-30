@@ -1,28 +1,31 @@
 import * as THREE from "three";
 
-/** Motorcycle-visor skull: wider than tall, one black mesh, no sockets. */
+/**
+ * Motorcycle-visor skull: wider than tall from the front, with real
+ * height and depth. One black mesh, no sockets.
+ */
 export function createVisorSkull(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.0, -0.064),
-    new THREE.Vector2(0.034, -0.062),
-    new THREE.Vector2(0.068, -0.052),
-    new THREE.Vector2(0.096, -0.034),
-    new THREE.Vector2(0.114, -0.012),
-    new THREE.Vector2(0.122, 0.01),
-    new THREE.Vector2(0.12, 0.03),
-    new THREE.Vector2(0.108, 0.048),
-    new THREE.Vector2(0.088, 0.062),
-    new THREE.Vector2(0.058, 0.072),
-    new THREE.Vector2(0.028, 0.078),
-    new THREE.Vector2(0.0, 0.082),
+    new THREE.Vector2(0.0, -0.088),
+    new THREE.Vector2(0.028, -0.086),
+    new THREE.Vector2(0.056, -0.074),
+    new THREE.Vector2(0.078, -0.054),
+    new THREE.Vector2(0.094, -0.028),
+    new THREE.Vector2(0.102, -0.002),
+    new THREE.Vector2(0.104, 0.024),
+    new THREE.Vector2(0.098, 0.048),
+    new THREE.Vector2(0.084, 0.07),
+    new THREE.Vector2(0.062, 0.088),
+    new THREE.Vector2(0.032, 0.1),
+    new THREE.Vector2(0.0, 0.106),
   ];
   const geo = new THREE.LatheGeometry(profile, 64);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
     const z = pos.getZ(i);
-    pos.setX(i, x * 1.12);
-    pos.setZ(i, z > 0 ? z * 0.42 : z * 0.5);
+    pos.setX(i, x * 1.1);
+    pos.setZ(i, z > 0 ? z * 0.78 : z * 0.88);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -30,8 +33,8 @@ export function createVisorSkull(): THREE.BufferGeometry {
 }
 
 /**
- * Athletic pec plate: wide and shallow. The back collapses at the collar
- * so a lathe does not form a white donut around the neck.
+ * Pectoral volume with front depth. The collar is front-only so the
+ * neck is not wrapped in a white ring; the lower pec still has a back.
  */
 export function createPecShell(): THREE.BufferGeometry {
   const segsV = 22;
@@ -43,25 +46,26 @@ export function createPecShell(): THREE.BufferGeometry {
   for (let iy = 0; iy <= segsV; iy += 1) {
     const t = iy / segsV;
     const y = t * 0.3;
-    let rMax = 0.072;
-    if (t < 0.18) rMax = 0.072 + (t / 0.18) * 0.1;
-    else if (t < 0.58) rMax = 0.172 + ((t - 0.18) / 0.4) * 0.04;
-    else if (t < 0.84) rMax = 0.212 - ((t - 0.58) / 0.26) * 0.028;
-    else rMax = 0.184 - ((t - 0.84) / 0.16) * 0.06;
+    let rMax = 0.08;
+    if (t < 0.18) rMax = 0.08 + (t / 0.18) * 0.09;
+    else if (t < 0.55) rMax = 0.17 + ((t - 0.18) / 0.37) * 0.03;
+    else if (t < 0.8) rMax = 0.2 - ((t - 0.55) / 0.25) * 0.02;
+    else rMax = 0.18 - ((t - 0.8) / 0.2) * 0.04;
 
     for (let ix = 0; ix <= segsU; ix += 1) {
       const a = (ix / segsU) * Math.PI * 2;
       const cos = Math.cos(a);
       const sin = Math.sin(a);
       let r = rMax;
-      if (t > 0.48) {
-        const lift = (t - 0.48) / 0.52;
+      if (t > 0.7) {
+        const lift = (t - 0.7) / 0.3;
         const frontness = Math.max(0, sin);
-        r *= (1 - lift) + lift * frontness;
+        r *= (1 - lift) + lift * Math.max(0.12, frontness);
       }
+      const depth = t > 0.7 ? 0.36 : 0.42;
       const x = r * cos;
-      let z = r * sin * 0.2;
-      if (z > 0) z *= 0.78;
+      let z = r * sin * depth;
+      if (z > 0) z *= 1.05;
       positions.push(x, y, z);
     }
   }
@@ -94,15 +98,15 @@ export function createPauldron(): THREE.BufferGeometry {
   for (let i = 0; i <= rings; i += 1) {
     const t = i / rings;
     const y = -t * 0.1;
-    const rx = 0.074 - t * 0.024;
-    const rz = 0.056 - t * 0.03;
+    const rx = 0.078 - t * 0.022;
+    const rz = 0.062 - t * 0.022;
     for (let j = 0; j <= radial; j += 1) {
       const a = (j / radial) * Math.PI * 2;
       const x = rx * Math.cos(a);
       let z = rz * Math.sin(a);
-      if (z < 0) z *= 0.55;
+      if (z < 0) z *= 0.6;
       let yy = y;
-      if (t < 0.35) yy += (1 - t / 0.35) * 0.012 * Math.max(0, Math.sin(a));
+      if (t < 0.35) yy += (1 - t / 0.35) * 0.014 * Math.max(0, Math.sin(a));
       positions.push(x, yy, z);
     }
   }
@@ -124,7 +128,7 @@ export function createPauldron(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Flattened-oval limb plate, scooped back, hard panel lips at the joints. */
+/** Flattened-oval limb plate with real thickness, scooped back, hard lips. */
 export function createLimbShell(
   length: number,
   rxTop: number,
@@ -140,14 +144,14 @@ export function createLimbShell(
   for (let i = 0; i <= rings; i += 1) {
     const t = i / rings;
     const y = -t * length;
-    const lip = i === 0 || i === rings ? 0.84 : 1;
+    const lip = i === 0 || i === rings ? 0.88 : 1;
     const rx = (rxTop + (rxBot - rxTop) * t) * lip;
     const rzi = rz * lip;
     for (let j = 0; j <= radial; j += 1) {
       const a = (j / radial) * Math.PI * 2;
       const x = rx * Math.cos(a);
       let z = rzi * Math.sin(a);
-      if (z < 0) z *= 0.42;
+      if (z < 0) z *= 0.58;
       positions.push(x, y, z);
     }
   }

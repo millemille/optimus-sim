@@ -178,16 +178,16 @@ export class Optimus {
   }
 
   private buildNeck(): void {
-    const column = this.mesh(new THREE.CylinderGeometry(0.034, 0.042, 0.145, 20), this.mats.matte);
+    const column = this.mesh(new THREE.CylinderGeometry(0.042, 0.05, 0.13, 20), this.mats.matte);
     column.name = "neckColumn";
-    column.position.set(0, 0.4, 0.006);
+    column.position.set(0, 0.392, 0.008);
     this.chest.add(column);
   }
 
   private buildHead(): void {
     const head = new THREE.Group();
     head.name = "head";
-    head.position.set(0, 0.568, 0.012);
+    head.position.set(0, 0.528, 0.012);
     this.chest.add(head);
 
     const skull = this.mesh(createVisorSkull(), this.mats.skull);
@@ -214,7 +214,7 @@ export class Optimus {
     upper.position.set(side * 0.03, -0.038, 0);
     shoulder.add(upper);
 
-    const housing = this.mesh(createLimbShell(0.195, 0.05, 0.042, 0.016), this.mats.white);
+    const housing = this.mesh(createLimbShell(0.195, 0.05, 0.042, 0.03), this.mats.white);
     housing.position.y = -0.028;
     upper.add(housing);
 
@@ -232,7 +232,7 @@ export class Optimus {
     forearm.position.y = -0.022;
     elbow.add(forearm);
 
-    const fHousing = this.mesh(createLimbShell(0.175, 0.042, 0.034, 0.014), this.mats.white);
+    const fHousing = this.mesh(createLimbShell(0.175, 0.044, 0.036, 0.026), this.mats.white);
     fHousing.position.y = -0.01;
     forearm.add(fHousing);
 
@@ -249,13 +249,14 @@ export class Optimus {
 
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
+    g.rotation.y = side * 0.7;
 
-    const palm = this.panel(0.062, 0.07, 0.02, this.mats.matte, 0.007);
+    const palm = this.panel(0.062, 0.07, 0.022, this.mats.matte, 0.007);
     palm.position.y = -0.028;
     g.add(palm);
 
-    const plate = this.panel(0.06, 0.058, 0.012, this.mats.white, 0.004);
-    plate.position.set(0, -0.01, 0.018);
+    const plate = this.panel(0.058, 0.056, 0.012, this.mats.white, 0.004);
+    plate.position.set(0, -0.01, 0.016);
     g.add(plate);
 
     const xs = [-0.022, -0.008, 0.007, 0.021];
@@ -309,7 +310,7 @@ export class Optimus {
     thigh.position.y = -0.022;
     hip.add(thigh);
 
-    const tHousing = this.mesh(createLimbShell(0.36, 0.064, 0.05, 0.016), this.mats.white);
+    const tHousing = this.mesh(createLimbShell(0.36, 0.06, 0.048, 0.034), this.mats.white);
     tHousing.position.y = -0.012;
     thigh.add(tHousing);
 
@@ -332,7 +333,7 @@ export class Optimus {
     shin.position.y = -0.022;
     knee.add(shin);
 
-    const sHousing = this.mesh(createLimbShell(0.38, 0.05, 0.038, 0.015), this.mats.white);
+    const sHousing = this.mesh(createLimbShell(0.38, 0.05, 0.04, 0.028), this.mats.white);
     sHousing.position.y = -0.01;
     shin.add(sHousing);
 
