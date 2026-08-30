@@ -178,9 +178,9 @@ export class Optimus {
   }
 
   private buildNeck(): void {
-    const column = this.mesh(new THREE.CylinderGeometry(0.036, 0.046, 0.13, 20), this.mats.matte);
+    const column = this.mesh(new THREE.CylinderGeometry(0.032, 0.04, 0.12, 20), this.mats.matte);
     column.name = "neckColumn";
-    column.position.set(0, 0.385, 0.008);
+    column.position.set(0, 0.382, 0.008);
     this.chest.add(column);
   }
 
@@ -202,9 +202,9 @@ export class Optimus {
 
     const pauldron = this.mesh(createPauldron(), this.mats.white);
     pauldron.name = side < 0 ? "pauldronL" : "pauldronR";
-    pauldron.rotation.z = side * 0.62;
-    pauldron.rotation.x = 0.1;
-    pauldron.position.set(side * 0.028, 0.002, 0.004);
+    pauldron.rotation.z = side * 0.42;
+    pauldron.rotation.x = 0.08;
+    pauldron.position.set(side * 0.03, -0.004, 0.002);
     shoulder.add(pauldron);
 
     const socket = this.mesh(new THREE.SphereGeometry(0.03, 12, 10), this.mats.joint);
@@ -215,7 +215,7 @@ export class Optimus {
     upper.position.set(side * 0.032, -0.042, 0);
     shoulder.add(upper);
 
-    const housing = this.mesh(createLimbShell(0.2, 0.048, 0.04, 0.026), this.mats.white);
+    const housing = this.mesh(createLimbShell(0.2, 0.052, 0.042, 0.02), this.mats.white);
     housing.position.y = -0.012;
     upper.add(housing);
 
@@ -233,7 +233,7 @@ export class Optimus {
     forearm.position.y = -0.022;
     elbow.add(forearm);
 
-    const fHousing = this.mesh(createLimbShell(0.175, 0.04, 0.032, 0.022), this.mats.white);
+    const fHousing = this.mesh(createLimbShell(0.175, 0.044, 0.034, 0.018), this.mats.white);
     fHousing.position.y = -0.01;
     forearm.add(fHousing);
 
@@ -310,12 +310,12 @@ export class Optimus {
     thigh.position.y = -0.022;
     hip.add(thigh);
 
-    const tHousing = this.mesh(createLimbShell(0.32, 0.058, 0.046, 0.032), this.mats.white);
+    const tHousing = this.mesh(createLimbShell(0.36, 0.06, 0.048, 0.026), this.mats.white);
     tHousing.position.y = -0.012;
     thigh.add(tHousing);
 
     const knee = new THREE.Group();
-    knee.position.y = -0.348;
+    knee.position.y = -0.388;
     thigh.add(knee);
     hip.userData.knee = knee;
 
@@ -327,20 +327,20 @@ export class Optimus {
     shin.position.y = -0.022;
     knee.add(shin);
 
-    const sHousing = this.mesh(createLimbShell(0.29, 0.046, 0.036, 0.026), this.mats.white);
+    const sHousing = this.mesh(createLimbShell(0.38, 0.048, 0.036, 0.02), this.mats.white);
     sHousing.position.y = -0.01;
     shin.add(sHousing);
 
     const ankle = new THREE.Group();
-    ankle.position.y = -0.318;
+    ankle.position.y = -0.408;
     shin.add(ankle);
     hip.userData.ankle = ankle;
 
     const joint = this.mesh(new THREE.SphereGeometry(0.024, 10, 8), this.mats.joint);
     ankle.add(joint);
 
-    const boot = this.panel(0.086, 0.062, 0.2, this.mats.matte, 0.024);
-    boot.position.set(0, -0.042, 0.042);
+    const boot = this.panel(0.086, 0.058, 0.2, this.mats.matte, 0.024);
+    boot.position.set(0, -0.036, 0.042);
     ankle.add(boot);
     const toe = this.mesh(new THREE.SphereGeometry(0.036, 14, 10), this.mats.matte);
     toe.scale.set(1.15, 0.72, 1.2);

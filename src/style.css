@@ -126,6 +126,11 @@ body,
   display: none;
 }
 
+html.studio #overlay,
+html.studio #hud {
+  display: none !important;
+}
+
 .card {
   width: min(440px, calc(100vw - 40px));
   padding: 28px 28px 24px;

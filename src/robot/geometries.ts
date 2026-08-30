@@ -35,19 +35,19 @@ export function createPecShell(): THREE.BufferGeometry {
   const profile = [
     new THREE.Vector2(0.05, 0.0),
     new THREE.Vector2(0.1, 0.02),
-    new THREE.Vector2(0.15, 0.055),
-    new THREE.Vector2(0.178, 0.105),
-    new THREE.Vector2(0.188, 0.16),
-    new THREE.Vector2(0.185, 0.21),
-    new THREE.Vector2(0.16, 0.252),
-    new THREE.Vector2(0.11, 0.28),
-    new THREE.Vector2(0.058, 0.295),
-    new THREE.Vector2(0.026, 0.302),
+    new THREE.Vector2(0.142, 0.05),
+    new THREE.Vector2(0.168, 0.1),
+    new THREE.Vector2(0.176, 0.155),
+    new THREE.Vector2(0.172, 0.205),
+    new THREE.Vector2(0.148, 0.248),
+    new THREE.Vector2(0.1, 0.278),
+    new THREE.Vector2(0.052, 0.294),
+    new THREE.Vector2(0.024, 0.3),
   ];
   const geo = new THREE.LatheGeometry(profile, 48);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
-    pos.setZ(i, pos.getZ(i) * 0.38);
+    pos.setZ(i, pos.getZ(i) * 0.34);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -59,7 +59,7 @@ export function createPauldron(): THREE.BufferGeometry {
   const geo = new THREE.SphereGeometry(1, 28, 18, 0, Math.PI * 2, 0, Math.PI * 0.6);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
-    pos.setXYZ(i, pos.getX(i) * 0.102, pos.getY(i) * 0.034, pos.getZ(i) * 0.09);
+    pos.setXYZ(i, pos.getX(i) * 0.092, pos.getY(i) * 0.05, pos.getZ(i) * 0.08);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
