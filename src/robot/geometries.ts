@@ -105,10 +105,10 @@ function torsoSample(u: number, v: number): [number, number, number] {
   let hw: number;
   if (v < 0.22) hw = 0.102 + (v / 0.22) * 0.058;
   else if (v < 0.52) hw = 0.16 + ((v - 0.22) / 0.3) * 0.055;
-  else if (v < 0.8) hw = 0.215 + ((v - 0.52) / 0.28) * 0.055;
-  else hw = 0.27 - ((v - 0.8) / 0.2) * 0.035 * (1 - au);
+  else if (v < 0.8) hw = 0.215 + ((v - 0.52) / 0.28) * 0.07;
+  else hw = 0.285 - ((v - 0.8) / 0.2) * 0.03 * (1 - au);
 
-  let y = 0.012 + v * 0.305;
+  let y = 0.012 + v * 0.328;
   if (v > 0.78 && au < 0.38) {
     y -= ((0.38 - au) / 0.38) * (v - 0.78) * 0.11;
   }
@@ -116,7 +116,7 @@ function torsoSample(u: number, v: number): [number, number, number] {
     const du = (au - 0.52) / 0.48;
     const dv = (v - 0.68) / 0.32;
     const r = Math.hypot(du, dv);
-    if (r > 0.5) y -= (r - 0.5) * 0.1;
+    if (r > 0.58) y -= (r - 0.58) * 0.07;
   }
   if (v > 0.08 && v < 0.48 && au > 0.48) {
     y -= ((au - 0.48) / 0.52) * Math.sin(((v - 0.08) / 0.4) * Math.PI) * 0.07;
@@ -126,7 +126,7 @@ function torsoSample(u: number, v: number): [number, number, number] {
   const pec = Math.exp(-((au - 0.4) ** 2) / 0.065) * Math.exp(-((v - 0.45) ** 2) / 0.05);
   const del = Math.exp(-((au - 0.84) ** 2) / 0.04) * Math.exp(-((v - 0.74) ** 2) / 0.036);
   const sternum = Math.exp(-(u * u) / 0.016) * (0.25 + 0.75 * Math.exp(-((v - 0.48) ** 2) / 0.07));
-  let z = 0.052 + pec * 0.1 + del * 0.075 - sternum * 0.042;
+  let z = 0.078 + pec * 0.118 + del * 0.088 - sternum * 0.038;
   if (au > 0.7) z *= 1 - ((au - 0.7) / 0.3) * 0.5;
   return [x, y, z];
 }
