@@ -113,7 +113,7 @@ function vestSurf(ang: number, v: number): [number, number, number] {
   const a = ang / 2.25;
   const outer = smoothstep(0.22, 0.68, Math.abs(a));
   const yDel = 0.252;
-  const xDel = 0.314;
+  const xDel = 0.316;
   const rDel = 0.086;
   const collar = 0.274;
 
@@ -155,7 +155,7 @@ function vestSurf(ang: number, v: number): [number, number, number] {
   const sternum = Math.exp(-(a * a) / 0.03) * 0.012 * (1 - v * 0.35);
   let hz = 0.04 + pec * 0.07 - sternum;
   hz *= 0.48 + 0.52 * Math.sin(Math.max(0.08, v) * Math.PI);
-  hz *= 1 - outer * 0.28;
+  if (outer > 0.45 && Math.abs(y - yDel) < 0.09) hz += 0.022;
 
   const wrap = Math.max(0.16, Math.cos(ang * 0.34));
   return [Math.sin(ang) * hw, y, hz * wrap];
