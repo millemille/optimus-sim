@@ -110,38 +110,72 @@ function loftArmor(
 }
 
 /**
- * Chest volume only. Stops at the pecs, does not flare past the
- * arms as a T-shelf. Deltoid width lives on createShoulderCap.
- * Open collar, no inner offset, so no z-fight.
+ * One pec-to-deltoid wrap. Chest volume stays on the pecs; the
+ * same mesh is pulled into a round deltoid lobe on each side so
+ * there is no gap and no separate pauldron ball. Outer reach
+ * stays near 0.40 (the ~295px band). Hem is a pec cut, not a bar.
  */
 export function createPecShell(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0.292, rx: 0.108, rzFront: 0.058, rzBack: 0.038, power: 0.48 },
-    { y: 0.248, rx: 0.168, rzFront: 0.078, rzBack: 0.04, power: 0.48 },
-    { y: 0.2, rx: 0.228, rzFront: 0.118, rzBack: 0.042, power: 0.46, ridge: 0.01 },
-    { y: 0.148, rx: 0.236, rzFront: 0.128, rzBack: 0.04, power: 0.46, ridge: 0.012 },
-    { y: 0.09, rx: 0.214, rzFront: 0.092, rzBack: 0.036, power: 0.5 },
-    { y: 0.028, rx: 0.188, rzFront: 0.062, rzBack: 0.032, power: 0.5 },
-    { y: -0.012, rx: 0.172, rzFront: 0.048, rzBack: 0.028, power: 0.5, lip: 0.94 },
+    { y: 0.29, rx: 0.104, rzFront: 0.05, rzBack: 0.028, power: 0.48 },
+    { y: 0.258, rx: 0.16, rzFront: 0.07, rzBack: 0.03, power: 0.46 },
+    { y: 0.228, rx: 0.252, rzFront: 0.086, rzBack: 0.03, power: 0.42 },
+    { y: 0.2, rx: 0.286, rzFront: 0.096, rzBack: 0.032, power: 0.4 },
+    { y: 0.168, rx: 0.254, rzFront: 0.112, rzBack: 0.03, power: 0.44, ridge: 0.01 },
+    { y: 0.13, rx: 0.234, rzFront: 0.116, rzBack: 0.028, power: 0.46, ridge: 0.012 },
+    { y: 0.088, rx: 0.212, rzFront: 0.082, rzBack: 0.026, power: 0.48 },
+    { y: 0.046, rx: 0.188, rzFront: 0.054, rzBack: 0.024, power: 0.5 },
+    { y: 0.008, rx: 0.166, rzFront: 0.04, rzBack: 0.02, power: 0.5, lip: 0.9 },
   ];
-  const geo = loftArmor(rings, 40, "bottom");
+  const geo = loftArmor(rings, 48, "none");
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
-    const x = pos.getX(i);
-    const y = pos.getY(i);
+    let x = pos.getX(i);
+    let y = pos.getY(i);
     let z = pos.getZ(i);
-    if (y > 0.22) {
-      const u = Math.exp(-((x / 0.08) ** 2)) * ((y - 0.22) / 0.08);
-      pos.setY(i, y - u * 0.048);
+
+    if (y > 0.226) {
+      const u = Math.exp(-((x / 0.09) ** 2)) * ((y - 0.226) / 0.064);
+      y -= u * 0.04;
+    }
+
+    const side = x >= 0 ? 1 : -1;
+    const cy = 0.198;
+    const wx = smoothstep(0.148, 0.26, Math.abs(x));
+    const wy = Math.exp(-(((y - 0.198) / 0.112) ** 2));
+    const wz = z > -0.008 ? 1 : 0.16;
+    const blend = wx * wy * wz;
+    if (blend > 0.02) {
+      const pole = THREE.MathUtils.clamp((y - cy) / 0.082, -1, 1);
+      const rxDelt = 0.1 * Math.sqrt(Math.max(0.12, 1 - pole * pole));
+      const tx = side * (0.304 + rxDelt);
+      const ty = cy + pole * 0.058 - blend * 0.03;
+      const tz = z >= 0 ? 0.012 + Math.max(0, z) * 0.45 + blend * 0.02 : z * 0.4;
+      x += (tx - x) * blend;
+      y += (ty - y) * blend;
+      z += (tz - z) * blend;
+    }
+
+    if (y < 0.082) {
+      const t = Math.min(1, Math.abs(x) / 0.17);
+      y += t * t * 0.05;
     }
     if (z > 0) {
-      const pec = Math.exp(-(x * x) / 0.02) * Math.exp(-((y - 0.16) ** 2) / 0.007);
-      pos.setZ(i, z + pec * 0.028);
+      const pec = Math.exp(-(x * x) / 0.03) * Math.exp(-((y - 0.138) ** 2) / 0.011);
+      z += pec * 0.016;
     }
+    pos.setX(i, x);
+    pos.setY(i, y);
+    pos.setZ(i, z);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
   return geo;
+}
+
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
 }
 
 /** Black ribcage the pec sits on. Fitted, not a hollow cage. */
@@ -160,27 +194,6 @@ export function createThorax(): THREE.BufferGeometry {
     pos.setZ(i, z > 0 ? z * 0.72 : z * 0.7);
   }
   pos.needsUpdate = true;
-  geo.computeVertexNormals();
-  return geo;
-}
-
-/**
- * Round deltoid that wraps onto the upper arm. Outer reach ~0.40
- * from chest center so the span stays in the ~290px band. Not a
- * shelf and not a polar extract.
- */
-export function createShoulderCap(side: number): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(0.09, 28, 20);
-  geo.scale(1.2, 0.7, 0.98);
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i += 1) {
-    const x = pos.getX(i);
-    const y = pos.getY(i);
-    if (x * side < 0) pos.setX(i, x * 0.38);
-    if (y > 0.02) pos.setY(i, 0.02 + (y - 0.02) * 0.45);
-  }
-  pos.needsUpdate = true;
-  geo.rotateZ(side * -0.18);
   geo.computeVertexNormals();
   return geo;
 }
@@ -256,12 +269,12 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
   const steps = 14;
   for (let i = 0; i <= steps; i += 1) {
     const t = i / steps;
-    const quad = Math.exp(-(((t - 0.42) / 0.2) ** 2));
+    const quad = Math.exp(-(((t - 0.46) / 0.2) ** 2));
     rings.push({
       y: -t * length,
-      rx: 0.068 + quad * 0.014 - t * 0.008,
-      rzFront: 0.062 + quad * 0.132 - t * 0.008,
-      rzBack: 0.026 + quad * 0.01 - t * 0.004,
+      rx: 0.062 + quad * 0.014 - t * 0.008,
+      rzFront: 0.032 + quad * 0.14 - t * 0.006,
+      rzBack: 0.014 + quad * 0.006 - t * 0.002,
       ridge: 0.005 * quad,
       lip: i === 0 || i === steps ? 0.9 : 1,
       power: 0.44,
@@ -287,9 +300,9 @@ export function createShinShell(length: number): THREE.BufferGeometry {
     const ridge = Math.max(0, 1 - Math.abs(t - 0.36) * 1.7);
     rings.push({
       y: -t * length,
-      rx: 0.048 - t * 0.008,
-      rzFront: 0.112 - t * 0.022,
-      rzBack: 0.02 - t * 0.004,
+      rx: 0.042 - t * 0.006,
+      rzFront: 0.118 - t * 0.022,
+      rzBack: 0.016 - t * 0.004,
       ridge: 0.005 * ridge,
       lip: i === 0 || i === steps ? 0.9 : 1,
       power: 0.5,
@@ -307,12 +320,13 @@ export function createKneeCap(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Plump finger volume. Not a stamp plate, not a capsule hoop. */
-export function createFingerVolume(length: number, girth: number): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(girth, 14, 12);
-  geo.scale(0.72, length / (girth * 2), 0.62);
-  geo.translate(0, length * 0.45, 0);
-  geo.computeVertexNormals();
-  return geo;
+/** White finger plate with volume, hanging down. Not a sphere cluster. */
+export function createFingerPhalanx(length: number, width: number): THREE.BufferGeometry {
+  const rings: ArmorRing[] = [
+    { y: 0, rx: width * 0.7, rzFront: width * 0.84, rzBack: width * 0.32, power: 0.5, lip: 0.9 },
+    { y: -length * 0.48, rx: width, rzFront: width * 1.08, rzBack: width * 0.36, power: 0.48 },
+    { y: -length, rx: width * 0.66, rzFront: width * 0.74, rzBack: width * 0.28, power: 0.5, lip: 0.86 },
+  ];
+  return loftArmor(rings, 18, "both");
 }
 
