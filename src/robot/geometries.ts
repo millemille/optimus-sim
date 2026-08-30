@@ -181,11 +181,11 @@ export function createPecShell(): THREE.BufferGeometry {
     { y: 0.304, cx: 0.248, rx: 0.11, rzFront: 0.062, rzBack: 0.022 },
     { y: 0.264, cx: 0.326, rx: 0.084, rzFront: 0.074, rzBack: 0.028 },
     { y: 0.222, cx: 0.298, rx: 0.104, rzFront: 0.08, rzBack: 0.026 },
-    { y: 0.176, cx: 0.208, rx: 0.13, rzFront: 0.088, rzBack: 0.028 },
-    { y: 0.122, cx: 0.142, rx: 0.138, rzFront: 0.094, rzBack: 0.026 },
-    { y: 0.066, cx: 0.13, rx: 0.118, rzFront: 0.072, rzBack: 0.022 },
-    { y: 0.014, cx: 0.116, rx: 0.096, rzFront: 0.05, rzBack: 0.018 },
-    { y: -0.026, cx: 0.102, rx: 0.066, rzFront: 0.032, rzBack: 0.014 },
+    { y: 0.176, cx: 0.188, rx: 0.142, rzFront: 0.088, rzBack: 0.028 },
+    { y: 0.122, cx: 0.118, rx: 0.148, rzFront: 0.094, rzBack: 0.026 },
+    { y: 0.066, cx: 0.108, rx: 0.132, rzFront: 0.072, rzBack: 0.022 },
+    { y: 0.014, cx: 0.1, rx: 0.112, rzFront: 0.05, rzBack: 0.018 },
+    { y: -0.026, cx: 0.09, rx: 0.078, rzFront: 0.032, rzBack: 0.014 },
   ];
   return mergeGeos([loftHalf(-1, rings, 40), loftHalf(1, rings, 40)]);
 }

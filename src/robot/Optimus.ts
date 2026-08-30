@@ -178,6 +178,10 @@ export class Optimus {
     column.name = "neckColumn";
     column.position.set(0, 0.372, 0.01);
     this.chest.add(column);
+
+    const well = this.mesh(new THREE.CylinderGeometry(0.068, 0.05, 0.046, 20), this.mats.matte);
+    well.position.set(0, 0.312, 0.01);
+    this.chest.add(well);
   }
 
   private buildHead(): void {
@@ -244,7 +248,7 @@ export class Optimus {
     palm.position.set(0, -0.028, 0);
     g.add(palm);
     const dorsal = this.panel(0.062, 0.036, 0.006, this.mats.white, 0.01);
-    dorsal.position.set(0, -0.024, 0.014);
+    dorsal.position.set(0, -0.024, 0.016);
     g.add(dorsal);
 
     const xs = [-0.025, -0.008, 0.009, 0.025];
@@ -255,7 +259,7 @@ export class Optimus {
       core.rotation.x = 0.32 + i * 0.03;
       g.add(core);
       const plate = this.panel(0.012, lens[i] * 0.7, 0.0045, this.mats.white, 0.003);
-      plate.position.set(xs[i], -0.048 - lens[i] * 0.26, 0.011);
+      plate.position.set(xs[i], -0.048 - lens[i] * 0.26, 0.013);
       plate.rotation.x = 0.32 + i * 0.03;
       g.add(plate);
     }
