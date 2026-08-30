@@ -146,16 +146,19 @@ export class Optimus {
   }
 
   private buildPelvis(): void {
+    const core = this.mesh(new THREE.CylinderGeometry(0.062, 0.07, 0.068, 16), this.mats.matte);
+    this.hips.add(core);
+
     const shell = this.lathe(
       [
-        [0.042, -0.03],
-        [0.072, -0.026],
-        [0.084, -0.006],
-        [0.08, 0.016],
-        [0.052, 0.03],
+        [0.038, -0.02],
+        [0.058, -0.016],
+        [0.066, 0.0],
+        [0.06, 0.016],
+        [0.04, 0.024],
       ],
       this.mats.white,
-      0.36,
+      0.3,
     );
     this.hips.add(shell);
 
@@ -254,32 +257,34 @@ export class Optimus {
     const g = new THREE.Group();
 
     const palm = this.mesh(createPalm(), this.mats.matte);
-    palm.position.set(0, -0.03, -0.004);
+    palm.position.set(0, -0.028, -0.002);
     g.add(palm);
 
     const dorsal = this.mesh(createPalm(), this.mats.white);
-    dorsal.scale.set(0.92, 0.72, 0.42);
-    dorsal.position.set(0, -0.026, 0.012);
+    dorsal.scale.set(0.9, 0.7, 0.38);
+    dorsal.position.set(0, -0.024, 0.016);
     g.add(dorsal);
 
     const digits = [
-      { x: -0.026, len: 0.068, r: 0.0092, spread: 0.1 },
-      { x: -0.009, len: 0.082, r: 0.0102, spread: 0.03 },
-      { x: 0.008, len: 0.078, r: 0.0098, spread: -0.03 },
-      { x: 0.024, len: 0.062, r: 0.0088, spread: -0.1 },
+      { x: -0.03, len: 0.074, r: 0.0124, spread: 0.16, curl: 0.22 },
+      { x: -0.01, len: 0.088, r: 0.0134, spread: 0.05, curl: 0.16 },
+      { x: 0.01, len: 0.084, r: 0.0128, spread: -0.05, curl: 0.18 },
+      { x: 0.028, len: 0.068, r: 0.0116, spread: -0.18, curl: 0.26 },
     ];
     for (const d of digits) {
       const f = this.mesh(createFingerVolume(d.len, d.r), this.mats.white);
-      f.position.set(d.x, -0.048, 0.006);
+      f.position.set(d.x, -0.052, 0.008);
       f.rotation.z = d.spread;
-      f.rotation.x = 0.08;
+      f.rotation.x = d.curl;
+      f.rotation.y = d.x * 1.1;
       g.add(f);
     }
 
-    const thumb = this.mesh(createFingerVolume(0.046, 0.009), this.mats.white);
-    thumb.position.set(side * 0.034, -0.012, 0.006);
-    thumb.rotation.z = side * -0.78;
-    thumb.rotation.x = 0.42;
+    const thumb = this.mesh(createFingerVolume(0.052, 0.012), this.mats.white);
+    thumb.position.set(side * 0.038, -0.008, 0.01);
+    thumb.rotation.z = side * -0.85;
+    thumb.rotation.x = 0.55;
+    thumb.rotation.y = side * 0.28;
     g.add(thumb);
     return g;
   }

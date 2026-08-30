@@ -96,35 +96,69 @@ function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
   return geo;
 }
 
+function clamp01(t: number): number {
+  return Math.min(1, Math.max(0, t));
+}
+
+function smoothstep(e0: number, e1: number, x: number): number {
+  const t = clamp01((x - e0) / (e1 - e0));
+  return t * t * (3 - 2 * t);
+}
+
 /**
- * Explicit pec wrap. Widest at mid-deltoid (~0.40), not the top.
- * Neck is a scoop. Outer top slopes down into the arm. No wings.
+ * Athletic vest. The pec is a V. Each deltoid is a circle in the
+ * front plane, widest at the equator (~0.40), inset at the top.
+ * That is a shoulder, not a wing that kicks up and out.
  */
 function vestSurf(ang: number, v: number): [number, number, number] {
-  const side = Math.abs(Math.sin(ang));
-  const front = Math.max(0, Math.cos(ang));
+  const a = ang / 2.15;
 
-  let hw: number;
-  if (v < 0.38) hw = 0.124 + (v / 0.38) * 0.276;
-  else hw = 0.4;
-  if (v > 0.78) hw -= ((v - 0.78) / 0.22) * 0.24 * (1 - side);
+  const collar = 0.294;
+  const peak = 0.358;
+  const ad = Math.abs(Math.abs(a) - 0.62);
+  const delHill = ad < 0.42 ? 0.5 + 0.5 * Math.cos((ad / 0.42) * Math.PI) : 0;
+  let yTop = collar + (peak - collar) * delHill;
+  if (Math.abs(a) > 0.8) {
+    const o = (Math.abs(a) - 0.8) / 0.2;
+    yTop -= o * o * 0.05;
+  }
 
-  let y = 0.01 + v * 0.328;
-  if (v > 0.76) y -= (1 - side) ** 2 * (v - 0.76) * 0.1;
-  if (v > 0.86 && side > 0.62) y -= (side - 0.62) * (v - 0.86) * 0.14;
+  const yBot = 0.078 + 0.02 * a * a;
+  const y = yBot + v * (yTop - yBot);
 
-  const pec = Math.exp(-(ang * ang) / 1.05) * Math.exp(-((v - 0.4) ** 2) / 0.09);
-  const depth = 0.05 + pec * 0.066;
-  const x = Math.sin(ang) * hw;
-  const z = Math.cos(ang) * (0.018 + front * depth);
-  return [x, y, z];
+  const pecW = 0.142 + smoothstep(0.078, 0.248, y) * 0.168;
+  const yDel = 0.268;
+  const xDel = 0.312;
+  const rDel = 0.09;
+  const dy = y - yDel;
+  let delW = 0;
+  if (dy * dy < rDel * rDel) {
+    delW = xDel + Math.sqrt(rDel * rDel - dy * dy);
+  }
+  let hw = Math.max(pecW, delW);
+
+  if (y > 0.268 && Math.abs(a) < 0.32) {
+    const t = clamp01((y - 0.268) / 0.08);
+    const c = 1 - Math.abs(a) / 0.32;
+    hw -= t * t * c * c * 0.11;
+    hw = Math.max(0.08, hw);
+  }
+
+  const pec =
+    Math.exp(-((Math.abs(a) - 0.3) ** 2) / 0.09) * Math.exp(-((v - 0.4) ** 2) / 0.13);
+  const sternum = Math.exp(-(a * a) / 0.03) * 0.015 * (1 - v * 0.45);
+  let hz = 0.04 + pec * 0.068 - sternum;
+  hz *= 0.52 + 0.48 * Math.sin(Math.max(0.12, v) * Math.PI);
+
+  const wrap = Math.max(0.18, Math.cos(ang * 0.36));
+  return [Math.sin(ang) * hw, y, hz * wrap];
 }
 
 export function createPecShell(): THREE.BufferGeometry {
-  const nu = 56;
-  const nv = 40;
-  const a0 = -2.05;
-  const a1 = 2.05;
+  const nu = 64;
+  const nv = 44;
+  const a0 = -2.15;
+  const a1 = 2.15;
   const cols = nu + 1;
   const positions: number[] = [];
 
@@ -275,26 +309,30 @@ export function createKneeCap(): THREE.BufferGeometry {
   return geo;
 }
 
-/** One tapered finger volume. Not a plate comb and not a capsule stack. */
+/** One finger with knuckle volume and a pad tip. Not a plate slat. */
 export function createFingerVolume(length: number, radius: number): THREE.BufferGeometry {
+  const r = radius;
   const profile = [
     new THREE.Vector2(0.0, 0.0),
-    new THREE.Vector2(radius * 0.7, 0.06),
-    new THREE.Vector2(radius, 0.3),
-    new THREE.Vector2(radius * 0.9, 0.62),
-    new THREE.Vector2(radius * 0.48, 0.9),
+    new THREE.Vector2(r * 0.82, 0.03),
+    new THREE.Vector2(r * 1.08, 0.18),
+    new THREE.Vector2(r * 0.94, 0.34),
+    new THREE.Vector2(r * 1.06, 0.5),
+    new THREE.Vector2(r * 0.88, 0.68),
+    new THREE.Vector2(r * 0.7, 0.84),
+    new THREE.Vector2(r * 0.4, 0.95),
     new THREE.Vector2(0.0, 1.0),
   ];
-  const geo = new THREE.LatheGeometry(profile, 18);
-  geo.scale(1, -length, 0.82);
+  const geo = new THREE.LatheGeometry(profile, 20);
+  geo.scale(1.05, -length, 0.9);
   geo.computeVertexNormals();
   return geo;
 }
 
-/** Rounded palm, not a rectangle. */
+/** Rounded palm you can read from across the room. */
 export function createPalm(): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(0.036, 20, 16);
-  geo.scale(1.2, 0.88, 0.58);
+  const geo = new THREE.SphereGeometry(0.04, 22, 18);
+  geo.scale(1.38, 1.02, 0.64);
   geo.computeVertexNormals();
   return geo;
 }
