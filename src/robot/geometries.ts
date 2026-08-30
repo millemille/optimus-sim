@@ -96,50 +96,131 @@ function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
   return geo;
 }
 
-type BodyRing = {
-  y: number;
-  cx: number;
-  rx: number;
-  rzFront: number;
-  rzBack: number;
-};
+function smin(a: number, b: number, k: number): number {
+  const h = Math.max(k - Math.abs(a - b), 0) / k;
+  return Math.min(a, b) - h * h * k * 0.25;
+}
 
-/** Smooth D-section loft whose ring centers walk from clavicle to pec to hem. */
-function loftHalf(side: number, rings: BodyRing[], segs: number): THREE.BufferGeometry {
-  const cols = segs + 1;
-  const positions: number[] = [];
-  const indices: number[] = [];
+function smax(a: number, b: number, k: number): number {
+  const h = Math.max(k - Math.abs(a - b), 0) / k;
+  return Math.max(a, b) + h * h * k * 0.25;
+}
 
-  for (const ring of rings) {
-    for (let j = 0; j <= segs; j += 1) {
-      const a = (j / segs) * Math.PI * 2;
-      const c = Math.cos(a);
-      const s = Math.sin(a);
-      const x = side * ring.cx + ring.rx * c;
-      const z = s >= 0 ? ring.rzFront * s ** 0.52 : ring.rzBack * s;
-      positions.push(x, ring.y, z);
+function ellip(
+  x: number,
+  y: number,
+  z: number,
+  cx: number,
+  cy: number,
+  cz: number,
+  rx: number,
+  ry: number,
+  rz: number,
+): number {
+  return Math.hypot((x - cx) / rx, (y - cy) / ry, (z - cz) / rz) - 1;
+}
+
+/**
+ * One pec volume melted into two round deltoid caps. No sternum seam,
+ * no yoke bar across the top.
+ */
+function torsoField(x: number, y: number, z: number): number {
+  const pec = ellip(x, y, z, 0, 0.126, 0.05, 0.2, 0.14, 0.092);
+  const delL = ellip(x, y, z, -0.34, 0.236, 0.02, 0.088, 0.086, 0.078);
+  const delR = ellip(x, y, z, 0.34, 0.236, 0.02, 0.088, 0.086, 0.078);
+  let d = smin(pec, smin(delL, delR, 0.07), 0.135);
+  d = smin(d, ellip(x, y, z, -0.3, 0.11, 0.012, 0.058, 0.118, 0.052), 0.075);
+  d = smin(d, ellip(x, y, z, 0.3, 0.11, 0.012, 0.058, 0.118, 0.052), 0.075);
+
+  if (y > 0.205) {
+    const well = Math.hypot(x / 0.1, (z - 0.012) / 0.072) - 1;
+    d = smax(d, -well + (y - 0.205) * 1.85, 0.042);
+  }
+  d = smax(d, -z - 0.018, 0.016);
+  return d;
+}
+
+function fieldGrad(x: number, y: number, z: number): [number, number, number] {
+  const e = 0.0024;
+  const dx = torsoField(x + e, y, z) - torsoField(x - e, y, z);
+  const dy = torsoField(x, y + e, z) - torsoField(x, y - e, z);
+  const dz = torsoField(x, y, z + e) - torsoField(x, y, z - e);
+  const n = Math.hypot(dx, dy, dz) || 1;
+  return [dx / n, dy / n, dz / n];
+}
+
+function polarHit(y: number, ang: number): [number, number, number] | null {
+  const dx = Math.sin(ang);
+  const dz = Math.cos(ang);
+  let t = 0.56;
+  let prev = torsoField(dx * t, y, 0.02 + dz * t);
+  for (let i = 0; i < 110; i += 1) {
+    t -= 0.0055;
+    if (t < 0.012) break;
+    const x = dx * t;
+    const z = 0.02 + dz * t;
+    const d = torsoField(x, y, z);
+    if (prev > 0 && d <= 0) {
+      const f = prev / (prev - d);
+      const tt = t + 0.0055 - f * 0.0055;
+      return [dx * tt, y, 0.02 + dz * tt];
+    }
+    prev = d;
+  }
+  return null;
+}
+
+/** One continuous pec-to-deltoid shell. Polar extract, no half-seams. */
+export function createPecShell(): THREE.BufferGeometry {
+  const nu = 96;
+  const nv = 72;
+  const a0 = -2.45;
+  const a1 = 2.45;
+  const y0 = -0.04;
+  const y1 = 0.355;
+  const cols = nu + 1;
+  const hits: Array<[number, number, number] | null> = [];
+
+  for (let iv = 0; iv <= nv; iv += 1) {
+    const y = y0 + (iv / nv) * (y1 - y0);
+    for (let iu = 0; iu <= nu; iu += 1) {
+      hits.push(polarHit(y, a0 + (iu / nu) * (a1 - a0)));
     }
   }
 
-  const last = rings.length - 1;
-  for (let i = 0; i < last; i += 1) {
-    for (let j = 0; j < segs; j += 1) {
+  const positions: number[] = [];
+  const inner: number[] = [];
+  const live: boolean[] = [];
+  for (const h of hits) {
+    if (!h) {
+      positions.push(0, 0, 0);
+      inner.push(0, 0, 0);
+      live.push(false);
+      continue;
+    }
+    const [x, y, z] = h;
+    const [nx, ny, nz] = fieldGrad(x, y, z);
+    positions.push(x, y, z);
+    inner.push(x - nx * 0.03, y - ny * 0.03, z - nz * 0.03);
+    live.push(true);
+  }
+
+  const frontCount = positions.length / 3;
+  positions.push(...inner);
+  const indices: number[] = [];
+  const quad = (a: number, b: number, c: number, d: number): void => {
+    indices.push(a, c, b, b, c, d);
+  };
+  for (let i = 0; i < nv; i += 1) {
+    for (let j = 0; j < nu; j += 1) {
       const a = i * cols + j;
       const b = a + 1;
       const c = a + cols;
       const d = c + 1;
-      indices.push(a, c, b, b, c, d);
+      if (!live[a] || !live[b] || !live[c] || !live[d]) continue;
+      quad(a, b, c, d);
+      quad(frontCount + b, frontCount + a, frontCount + d, frontCount + c);
     }
-  }
-
-  const topCenter = positions.length / 3;
-  positions.push(side * rings[0].cx, rings[0].y, 0);
-  const botCenter = positions.length / 3;
-  positions.push(side * rings[last].cx, rings[last].y, 0);
-  for (let j = 0; j < segs; j += 1) {
-    indices.push(topCenter, j, j + 1);
-    const b = last * cols + j;
-    indices.push(botCenter, b + 1, b);
   }
 
   const geo = new THREE.BufferGeometry();
@@ -147,47 +228,6 @@ function loftHalf(side: number, rings: BodyRing[], segs: number): THREE.BufferGe
   geo.setIndex(indices);
   geo.computeVertexNormals();
   return geo;
-}
-
-function mergeGeos(geos: THREE.BufferGeometry[]): THREE.BufferGeometry {
-  const positions: number[] = [];
-  const indices: number[] = [];
-  for (const geo of geos) {
-    const off = positions.length / 3;
-    const pos = geo.attributes.position;
-    for (let i = 0; i < pos.count; i += 1) {
-      positions.push(pos.getX(i), pos.getY(i), pos.getZ(i));
-    }
-    const idx = geo.getIndex();
-    if (!idx) continue;
-    for (let i = 0; i < idx.count; i += 1) indices.push(idx.getX(i) + off);
-    geo.dispose();
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
-}
-
-/**
- * Smooth pec-to-deltoid wrap. Two lofted halves meet at the sternum and
- * open a U that the neck sits in. Not an extracted silhouette.
- */
-export function createPecShell(): THREE.BufferGeometry {
-  const rings: BodyRing[] = [
-    { y: 0.368, cx: 0.116, rx: 0.066, rzFront: 0.042, rzBack: 0.018 },
-    { y: 0.338, cx: 0.172, rx: 0.09, rzFront: 0.052, rzBack: 0.02 },
-    { y: 0.304, cx: 0.248, rx: 0.11, rzFront: 0.062, rzBack: 0.022 },
-    { y: 0.264, cx: 0.326, rx: 0.084, rzFront: 0.074, rzBack: 0.028 },
-    { y: 0.222, cx: 0.298, rx: 0.104, rzFront: 0.08, rzBack: 0.026 },
-    { y: 0.176, cx: 0.188, rx: 0.142, rzFront: 0.088, rzBack: 0.028 },
-    { y: 0.122, cx: 0.118, rx: 0.148, rzFront: 0.094, rzBack: 0.026 },
-    { y: 0.066, cx: 0.108, rx: 0.132, rzFront: 0.072, rzBack: 0.022 },
-    { y: 0.014, cx: 0.1, rx: 0.112, rzFront: 0.05, rzBack: 0.018 },
-    { y: -0.026, cx: 0.09, rx: 0.078, rzFront: 0.032, rzBack: 0.014 },
-  ];
-  return mergeGeos([loftHalf(-1, rings, 40), loftHalf(1, rings, 40)]);
 }
 
 /** Solid fitted abdomen. Not a hollow ring cage. */

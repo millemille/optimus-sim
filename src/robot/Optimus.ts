@@ -148,10 +148,6 @@ export class Optimus {
     const core = this.mesh(new THREE.CylinderGeometry(0.07, 0.078, 0.074, 16), this.mats.matte);
     this.hips.add(core);
 
-    const plate = this.panel(0.068, 0.036, 0.048, this.mats.white, 0.012);
-    plate.position.set(0, 0.006, 0.028);
-    this.hips.add(plate);
-
     for (const side of [-1, 1]) {
       const motor = this.mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.07, 12), this.mats.actuator);
       motor.rotation.z = side * 0.65;
@@ -244,34 +240,38 @@ export class Optimus {
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
 
-    const palm = this.panel(0.07, 0.046, 0.026, this.mats.matte, 0.014);
-    palm.position.set(0, -0.028, 0);
+    const palm = this.mesh(new THREE.SphereGeometry(0.03, 16, 12), this.mats.matte);
+    palm.scale.set(1.32, 0.9, 0.7);
+    palm.position.set(0, -0.03, 0);
     g.add(palm);
-    const dorsal = this.panel(0.062, 0.036, 0.006, this.mats.white, 0.01);
-    dorsal.position.set(0, -0.024, 0.016);
+    const dorsal = this.mesh(new THREE.SphereGeometry(0.026, 14, 10), this.mats.white);
+    dorsal.scale.set(1.18, 0.72, 0.32);
+    dorsal.position.set(0, -0.026, 0.015);
     g.add(dorsal);
 
-    const xs = [-0.025, -0.008, 0.009, 0.025];
-    const lens = [0.052, 0.06, 0.056, 0.044];
+    const xs = [-0.022, -0.007, 0.008, 0.022];
+    const lens = [0.036, 0.042, 0.04, 0.03];
     for (let i = 0; i < 4; i += 1) {
-      const core = this.mesh(new THREE.CapsuleGeometry(0.0072, lens[i] * 0.42, 4, 8), this.mats.matte);
-      core.position.set(xs[i], -0.05 - lens[i] * 0.28, 0.001);
-      core.rotation.x = 0.32 + i * 0.03;
-      g.add(core);
-      const plate = this.panel(0.012, lens[i] * 0.7, 0.0045, this.mats.white, 0.003);
-      plate.position.set(xs[i], -0.048 - lens[i] * 0.26, 0.013);
-      plate.rotation.x = 0.32 + i * 0.03;
-      g.add(plate);
+      const bone = this.mesh(new THREE.CapsuleGeometry(0.0068, lens[i], 3, 8), this.mats.matte);
+      bone.position.set(xs[i], -0.058, 0);
+      bone.rotation.x = 0.38 + i * 0.03;
+      g.add(bone);
+      const pad = this.mesh(new THREE.SphereGeometry(0.0074, 10, 8), this.mats.white);
+      pad.scale.set(0.82, 1.7 + i * 0.08, 0.42);
+      pad.position.set(xs[i], -0.054, 0.013);
+      pad.rotation.x = 0.38 + i * 0.03;
+      g.add(pad);
     }
 
-    const thumb = this.mesh(new THREE.CapsuleGeometry(0.007, 0.022, 4, 8), this.mats.matte);
-    thumb.position.set(side * 0.034, -0.02, 0.006);
-    thumb.rotation.set(0.28, side * 0.45, side * 0.7);
+    const thumb = this.mesh(new THREE.CapsuleGeometry(0.0066, 0.02, 3, 8), this.mats.matte);
+    thumb.position.set(side * 0.032, -0.018, 0.004);
+    thumb.rotation.set(0.3, side * 0.48, side * 0.68);
     g.add(thumb);
-    const tPlate = this.panel(0.01, 0.028, 0.004, this.mats.white, 0.003);
-    tPlate.position.set(side * 0.036, -0.022, 0.014);
-    tPlate.rotation.set(0.28, side * 0.45, side * 0.7);
-    g.add(tPlate);
+    const tPad = this.mesh(new THREE.SphereGeometry(0.007, 10, 8), this.mats.white);
+    tPad.scale.set(0.8, 1.5, 0.4);
+    tPad.position.set(side * 0.034, -0.02, 0.014);
+    tPad.rotation.set(0.3, side * 0.48, side * 0.68);
+    g.add(tPad);
     return g;
   }
 
