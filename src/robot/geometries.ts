@@ -120,26 +120,54 @@ function ellip(
   return Math.hypot((x - cx) / rx, (y - cy) / ry, (z - cz) / rz) - 1;
 }
 
+function boxRound(
+  px: number,
+  py: number,
+  pz: number,
+  hx: number,
+  hy: number,
+  hz: number,
+  r: number,
+): number {
+  const qx = Math.abs(px) - hx + r;
+  const qy = Math.abs(py) - hy + r;
+  const qz = Math.abs(pz) - hz + r;
+  const ox = Math.max(qx, 0);
+  const oy = Math.max(qy, 0);
+  const oz = Math.max(qz, 0);
+  return Math.hypot(ox, oy, oz) + Math.min(Math.max(qx, qy, qz), 0) - r;
+}
+
+function smoothstep(e0: number, e1: number, x: number): number {
+  const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
+  return t * t * (3 - 2 * t);
+}
+
 /**
- * One athletic vest + two deltoid masses. Smooth-min so pec and
- * shoulder are the same wrap. No sternum ridge, no two-plate split.
- * Outer half-width is ~0.38, the v11 span, as rounded caps not a bar.
+ * Fitted vest, not a yoke. Width lives at the deltoid corners
+ * (~0.40 half-span). Center top is a neck well, not a bar.
  */
 function torsoField(x: number, y: number, z: number): number {
-  const pec = ellip(x, y, z, 0, 0.168, 0.052, 0.255, 0.16, 0.124);
-  const waist = ellip(x, y, z, 0, 0.046, 0.03, 0.145, 0.078, 0.082);
-  const yoke = ellip(x, y, z, 0, 0.246, 0.034, 0.3, 0.074, 0.094);
-  const delL = ellip(x, y, z, -0.252, 0.242, 0.022, 0.148, 0.11, 0.108);
-  const delR = ellip(x, y, z, 0.252, 0.242, 0.022, 0.148, 0.11, 0.108);
-  const sleeveL = ellip(x, y, z, -0.292, 0.168, 0.014, 0.078, 0.105, 0.072);
-  const sleeveR = ellip(x, y, z, 0.292, 0.168, 0.014, 0.078, 0.105, 0.072);
-  let d = smin(pec, waist, 0.08);
-  d = smin(d, yoke, 0.082);
-  d = smin(d, smin(delL, delR, 0.08), 0.1);
-  d = smin(d, smin(sleeveL, sleeveR, 0.06), 0.075);
+  const t = Math.min(1, Math.max(0, y / 0.34));
+  let hx = 0.118 + smoothstep(0, 0.58, t) * 0.108;
+  const au = Math.abs(x);
+  if (t > 0.56) {
+    const side = smoothstep(0.15, 0.34, au);
+    hx += 0.168 * side * smoothstep(0.56, 0.9, t);
+  }
+  const pecLift = Math.sin(Math.min(1, t / 0.52) * Math.PI);
+  const hz = 0.058 + pecLift * 0.05;
+  let d = boxRound(x, y - 0.152, z - 0.04, hx, 0.152, hz, 0.05);
 
-  if (y > 0.308) {
-    const well = Math.hypot(x / 0.054, (z - 0.01) / 0.046) - 1;
+  const delL = ellip(x, y, z, -0.302, 0.252, 0.018, 0.098, 0.086, 0.092);
+  const delR = ellip(x, y, z, 0.302, 0.252, 0.018, 0.098, 0.086, 0.092);
+  const sleeveL = ellip(x, y, z, -0.31, 0.15, 0.01, 0.068, 0.112, 0.062);
+  const sleeveR = ellip(x, y, z, 0.31, 0.15, 0.01, 0.068, 0.112, 0.062);
+  d = smin(d, smin(delL, delR, 0.045), 0.062);
+  d = smin(d, smin(sleeveL, sleeveR, 0.05), 0.058);
+
+  if (y > 0.286) {
+    const well = Math.hypot(x / 0.058, (z - 0.008) / 0.048) - 1;
     d = smax(d, -well, 0.03);
   }
   return d;
@@ -292,8 +320,8 @@ export function createLimbShell(
   return loftArmor(rings, 28);
 }
 
-/** Fitted quad shell: one volume, anterior bulk a stranger sees from the side. */
-export function createThighShell(length: number): THREE.BufferGeometry {
+/** Fitted quad: D-section, flat inner, anterior bulk. Not a pipe. */
+export function createThighShell(length: number, side: number): THREE.BufferGeometry {
   const rings: ArmorRing[] = [];
   const steps = 14;
   for (let i = 0; i <= steps; i += 1) {
@@ -301,15 +329,23 @@ export function createThighShell(length: number): THREE.BufferGeometry {
     const quad = Math.exp(-(((t - 0.26) / 0.22) ** 2));
     rings.push({
       y: -t * length,
-      rx: 0.098 + quad * 0.024 - t * 0.014,
-      rzFront: 0.132 + quad * 0.052 - t * 0.016,
-      rzBack: 0.052 + quad * 0.02 - t * 0.008,
-      ridge: 0.004 * quad,
+      rx: 0.082 + quad * 0.016 - t * 0.012,
+      rzFront: 0.126 + quad * 0.056 - t * 0.016,
+      rzBack: 0.024 + quad * 0.01 - t * 0.004,
+      ridge: 0.003 * quad,
       lip: i === 0 || i === steps ? 0.92 : 1,
-      power: 0.5,
+      power: 0.42,
     });
   }
-  return loftArmor(rings, 36);
+  const geo = loftArmor(rings, 36);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const x = pos.getX(i);
+    if (x * side < 0) pos.setX(i, x * 0.52);
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
 }
 
 /** Shin as an anterior ski plate, not a tube. */
@@ -341,11 +377,29 @@ export function createKneeCap(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Knuckle plate: the white back of the hand a stranger sees first. */
-export function createDorsalPlate(): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(0.05, 22, 16, 0, Math.PI * 2, 0, Math.PI * 0.7);
-  geo.scale(1.08, 0.78, 0.36);
-  geo.rotateX(-0.28);
+/** Thin white plate on the back of one phalanx. */
+export function createPhalanxPlate(width: number, length: number): THREE.BufferGeometry {
+  const geo = new THREE.BoxGeometry(width, length, 0.0054);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const y = pos.getY(i);
+    const taper = y < 0 ? 0.78 : 0.96;
+    pos.setX(i, pos.getX(i) * taper);
+    pos.setZ(i, pos.getZ(i) + 0.002);
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Small white knuckle tile on the back of the hand. */
+export function createKnuckleTile(): THREE.BufferGeometry {
+  const geo = new THREE.BoxGeometry(0.016, 0.014, 0.005);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    pos.setZ(i, pos.getZ(i) + 0.001);
+  }
+  pos.needsUpdate = true;
   geo.computeVertexNormals();
   return geo;
 }
