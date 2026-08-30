@@ -28,9 +28,9 @@ export class CameraRig {
   }
 
   setPortrait(view: "front" | "q" | "side"): void {
-    this.distance = 2.35;
-    this.lookHeight = 0.9;
-    this.pitch = 0.04;
+    this.distance = 2.55;
+    this.lookHeight = 0.88;
+    this.pitch = 0.02;
     if (view === "front") this.yaw = 0;
     else if (view === "q") this.yaw = 0.7;
     else this.yaw = Math.PI / 2;
