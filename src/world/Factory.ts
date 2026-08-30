@@ -7,6 +7,7 @@ export class Factory {
   readonly group = new THREE.Group();
   readonly obstacles: Box[] = [];
   readonly crate: THREE.Group;
+  readonly crateMarker: THREE.Group;
   readonly dropZone: THREE.Group;
   readonly crateHome = new THREE.Vector3(-2.15, 1.03, 1.35);
   readonly dropPos = new THREE.Vector3(3.6, 0.12, -3.15);
@@ -21,6 +22,8 @@ export class Factory {
     this.crate = this.makeCrate();
     this.crate.position.copy(this.crateHome);
     this.group.add(this.crate);
+    this.crateMarker = this.makeCrateMarker();
+    this.group.add(this.crateMarker);
     this.dropZone = this.makeDropZone();
     this.dropZone.position.copy(this.dropPos);
     this.group.add(this.dropZone);
@@ -39,7 +42,7 @@ export class Factory {
         map: floorMap,
         roughness: 0.92,
         metalness: 0.04,
-        color: 0xb7b3aa,
+        color: 0xc4c0b6,
       }),
     );
     floor.rotation.x = -Math.PI / 2;
@@ -53,7 +56,7 @@ export class Factory {
     wallMap.colorSpace = THREE.SRGBColorSpace;
     const wallMat = new THREE.MeshStandardMaterial({
       map: wallMap,
-      color: 0x4a4844,
+      color: 0x6a6862,
       roughness: 0.88,
     });
 
@@ -114,16 +117,18 @@ export class Factory {
     lamp.position.set(x, 3.87, z);
     this.group.add(lamp);
 
-    const light = new THREE.PointLight(0xfff1d0, 18, 11, 2);
+    const light = new THREE.PointLight(0xfff1d0, 28, 13, 2);
     light.position.set(x, 3.6, z);
     this.group.add(light);
   }
 
   private addLights(): void {
-    const hemi = new THREE.HemisphereLight(0xc5cdd8, 0x2b2824, 0.42);
+    const hemi = new THREE.HemisphereLight(0xd8dee8, 0x3a362e, 0.72);
     this.group.add(hemi);
+    const fill = new THREE.AmbientLight(0x8890a0, 0.28);
+    this.group.add(fill);
 
-    const sun = new THREE.DirectionalLight(0xfff3de, 1.15);
+    const sun = new THREE.DirectionalLight(0xfff6e6, 1.35);
     sun.position.set(-4, 8, 3);
     sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024);
@@ -241,12 +246,35 @@ export class Factory {
     this.group.add(stripe);
   }
 
+  private makeCrateMarker(): THREE.Group {
+    const g = new THREE.Group();
+    g.name = "crate-marker";
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.28, 0.38, 24),
+      new THREE.MeshStandardMaterial({
+        color: 0xf0a040,
+        emissive: 0xaa5010,
+        emissiveIntensity: 0.55,
+        side: THREE.DoubleSide,
+      }),
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(this.crateHome.x, 0.92, this.crateHome.z);
+    g.add(ring);
+    return g;
+  }
+
   private makeCrate(): THREE.Group {
     const g = new THREE.Group();
     g.name = "parts-crate";
     const body = new THREE.Mesh(
-      new RoundedBoxGeometry(0.36, 0.22, 0.3, 1, 0.012),
-      new THREE.MeshStandardMaterial({ color: 0x6d5340, roughness: 0.72 }),
+      new RoundedBoxGeometry(0.4, 0.24, 0.32, 1, 0.012),
+      new THREE.MeshStandardMaterial({
+        color: 0xb56a32,
+        roughness: 0.55,
+        emissive: 0x3a1808,
+        emissiveIntensity: 0.35,
+      }),
     );
     body.castShadow = true;
     g.add(body);

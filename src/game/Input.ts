@@ -62,9 +62,9 @@ export class Input {
   }
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
-    if (event.code === "KeyE") this.useQueued = true;
-    if (event.repeat) return;
+    if (event.code.startsWith("Arrow")) event.preventDefault();
     this.keys.add(event.code);
+    if (event.code === "KeyE" && !event.repeat) this.useQueued = true;
   };
 
   private readonly onKeyUp = (event: KeyboardEvent): void => {

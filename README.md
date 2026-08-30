@@ -27,6 +27,7 @@ npm run preview
 | W A S D | Walk |
 | Shift | Walk faster |
 | Mouse | Look (third person, behind the robot) |
+| Arrow keys | Look without the mouse |
 | E or left click | Pick up or place when the prompt shows |
 | Esc | Release pointer lock / pause |
 

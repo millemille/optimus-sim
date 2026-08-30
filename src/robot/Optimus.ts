@@ -122,11 +122,11 @@ export class Optimus {
   private poseWalk(w: number): void {
     if (w <= 0.001) return;
     const t = this.phase;
-    const stride = 0.52 * w;
+    const stride = 0.72 * w;
     this.lHip.rotation.x = Math.sin(t) * stride;
     this.rHip.rotation.x = Math.sin(t + Math.PI) * stride;
-    this.lKnee.rotation.x = 0.1 + Math.max(0, Math.sin(t + 0.45)) * 0.78 * w;
-    this.rKnee.rotation.x = 0.1 + Math.max(0, Math.sin(t + Math.PI + 0.45)) * 0.78 * w;
+    this.lKnee.rotation.x = 0.08 + Math.max(0, Math.sin(t + 0.35)) * 0.95 * w;
+    this.rKnee.rotation.x = 0.08 + Math.max(0, Math.sin(t + Math.PI + 0.35)) * 0.95 * w;
     this.lAnkle.rotation.x = -0.08 - Math.sin(t) * 0.16 * w;
     this.rAnkle.rotation.x = -0.08 - Math.sin(t + Math.PI) * 0.16 * w;
     this.lShoulder.rotation.x = Math.sin(t + Math.PI) * 0.38 * w;
@@ -184,13 +184,12 @@ export class Optimus {
     head.position.set(0, 0.52, 0.02);
     this.chest.add(head);
 
-    const visor = this.panel(0.2, 0.22, 0.24, this.mats.visor, 0.08);
-    visor.scale.set(1, 1.02, 1);
+    const visor = this.panel(0.22, 0.24, 0.26, this.mats.visor, 0.09);
     head.add(visor);
 
-    const dome = this.mesh(new THREE.SphereGeometry(0.1, 20, 14, 0, Math.PI * 2, 0, Math.PI * 0.55), this.mats.visor);
-    dome.scale.set(0.98, 0.9, 1.12);
-    dome.position.set(0, 0.02, 0.01);
+    const dome = this.mesh(new THREE.SphereGeometry(0.112, 22, 16), this.mats.visor);
+    dome.scale.set(0.9, 0.98, 1.08);
+    dome.position.set(0, 0.01, 0.02);
     head.add(dome);
 
     const left = this.mesh(new THREE.CapsuleGeometry(0.012, 0.018, 6, 8), this.mats.eye);
@@ -214,8 +213,8 @@ export class Optimus {
     shoulder.position.set(side * 0.2, 0.34, 0);
     this.chest.add(shoulder);
 
-    const cap = this.panel(0.1, 0.08, 0.1, this.mats.white, 0.02);
-    cap.position.set(side * 0.02, 0.02, 0);
+    const cap = this.panel(0.12, 0.09, 0.12, this.mats.white, 0.024);
+    cap.position.set(side * 0.03, 0.03, 0);
     shoulder.add(cap);
 
     const socket = this.mesh(new THREE.SphereGeometry(0.038, 12, 10), this.mats.joint);

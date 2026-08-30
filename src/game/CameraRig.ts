@@ -15,12 +15,15 @@ export class CameraRig {
   constructor(readonly camera: THREE.PerspectiveCamera) {}
 
   applyLook(dx: number, dy: number): void {
-    this.yaw -= dx * SENSITIVITY;
-    this.pitch = THREE.MathUtils.clamp(
-      this.pitch - dy * SENSITIVITY,
-      MIN_PITCH,
-      MAX_PITCH,
-    );
+    const mx = THREE.MathUtils.clamp(dx, -48, 48);
+    const my = THREE.MathUtils.clamp(dy, -48, 48);
+    this.yaw -= mx * SENSITIVITY;
+    this.pitch = THREE.MathUtils.clamp(this.pitch - my * SENSITIVITY, MIN_PITCH, MAX_PITCH);
+  }
+
+  applyHeldLook(dt: number, yaw: number, pitch: number): void {
+    this.yaw += yaw * 1.7 * dt;
+    this.pitch = THREE.MathUtils.clamp(this.pitch + pitch * 1.3 * dt, MIN_PITCH, MAX_PITCH);
   }
 
   update(origin: THREE.Vector3): void {

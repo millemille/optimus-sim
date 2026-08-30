@@ -41,8 +41,8 @@ export class Game {
     this.mission = new Mission(this.factory, this.player);
     this.hud = new Hud(() => this.requestLock());
 
-    this.scene.background = new THREE.Color(0x121214);
-    this.scene.fog = new THREE.Fog(0x121214, 12, 28);
+    this.scene.background = new THREE.Color(0x2a2a2c);
+    this.scene.fog = new THREE.Fog(0x2a2a2c, 16, 36);
     this.scene.add(this.factory.group);
     this.scene.add(this.player.robot.root);
 
@@ -104,6 +104,11 @@ export class Game {
     if (this.playing) {
       const look = this.input.consumeLook();
       this.cameraRig.applyLook(look.x, look.y);
+      const heldYaw =
+        (this.input.keys.has("ArrowLeft") ? 1 : 0) + (this.input.keys.has("ArrowRight") ? -1 : 0);
+      const heldPitch =
+        (this.input.keys.has("ArrowUp") ? 1 : 0) + (this.input.keys.has("ArrowDown") ? -1 : 0);
+      this.cameraRig.applyHeldLook(dt, heldYaw, heldPitch);
       this.player.update(dt, this.input, this.cameraRig.yaw, this.factory.obstacles);
       if (this.input.consumeUse()) this.mission.tryUse();
     } else {

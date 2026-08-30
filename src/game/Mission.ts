@@ -56,6 +56,7 @@ export class Mission {
     crate.scale.setScalar(0.92);
     this.player.robot.carryAnchor.add(crate);
     this.player.carrying = true;
+    this.factory.crateMarker.visible = false;
     this.phase = "carry";
   }
 

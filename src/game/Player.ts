@@ -18,7 +18,7 @@ export class Player {
   private facing = 0;
 
   constructor() {
-    this.position.set(0.4, 0, 0.2);
+    this.position.set(-0.2, 0, 0.15);
     this.facing = 0;
     this.robot.setFacing(this.facing);
   }
