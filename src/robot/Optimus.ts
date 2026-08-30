@@ -3,8 +3,8 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import {
   createDeltoid,
   createDorsalPlate,
-  createFingerPlate,
   createKneeCap,
+  createPhalanx,
   createLimbShell,
   createPecShell,
   createShinShell,
@@ -151,13 +151,13 @@ export class Optimus {
       [
         [0.055, -0.054],
         [0.1, -0.048],
-        [0.128, -0.022],
-        [0.136, 0.012],
-        [0.11, 0.042],
-        [0.068, 0.054],
+        [0.118, -0.02],
+        [0.124, 0.01],
+        [0.1, 0.038],
+        [0.062, 0.05],
       ],
       this.mats.white,
-      0.64,
+      0.52,
     );
     this.hips.add(shell);
 
@@ -208,13 +208,13 @@ export class Optimus {
 
   private arm(side: number): THREE.Group {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.228, 0.236, 0.016);
+    shoulder.position.set(side * 0.255, 0.248, 0.018);
     this.chest.add(shoulder);
 
     const deltoid = this.mesh(createDeltoid(), this.mats.white);
     deltoid.name = side < 0 ? "pauldronL" : "pauldronR";
     if (side < 0) deltoid.scale.x = -1;
-    deltoid.position.set(side * 0.012, -0.02, 0.02);
+    deltoid.position.set(side * 0.02, 0.006, 0.018);
     shoulder.add(deltoid);
 
     const socket = this.mesh(new THREE.SphereGeometry(0.012, 8, 6), this.mats.joint);
@@ -261,33 +261,54 @@ export class Optimus {
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
 
-    const palm = this.panel(0.076, 0.068, 0.012, this.mats.matte, 0.008);
-    palm.position.set(0, -0.038, -0.01);
+    const palm = this.panel(0.08, 0.07, 0.014, this.mats.matte, 0.008);
+    palm.position.set(0, -0.036, -0.008);
     g.add(palm);
 
     const dorsal = this.mesh(createDorsalPlate(), this.mats.white);
-    dorsal.position.set(0, -0.03, 0.012);
+    dorsal.position.set(0, -0.028, 0.01);
     g.add(dorsal);
 
     const digits = [
-      { x: -0.033, len: 0.074, w: 0.016 },
-      { x: -0.011, len: 0.09, w: 0.018 },
-      { x: 0.011, len: 0.086, w: 0.017 },
-      { x: 0.033, len: 0.07, w: 0.015 },
+      { x: -0.032, len: 0.072, w: 0.02 },
+      { x: -0.011, len: 0.088, w: 0.022 },
+      { x: 0.011, len: 0.084, w: 0.021 },
+      { x: 0.032, len: 0.068, w: 0.019 },
     ];
     for (const d of digits) {
-      const plate = this.mesh(createFingerPlate(d.len, d.w), this.mats.white);
-      plate.position.set(d.x, -0.062 - d.len * 0.42, 0.011);
-      g.add(plate);
-      const tip = this.panel(d.w * 0.62, 0.007, 0.01, this.mats.matte, 0.002);
-      tip.position.set(d.x, -0.062 - d.len * 0.88, 0.01);
-      g.add(tip);
+      const f = this.finger(d.len, d.w);
+      f.position.set(d.x, -0.056, 0.01);
+      g.add(f);
     }
 
-    const thumb = this.mesh(createFingerPlate(0.056, 0.016), this.mats.white);
-    thumb.position.set(side * 0.046, -0.022, 0.01);
-    thumb.rotation.z = side * -0.62;
+    const thumb = this.finger(0.052, 0.018);
+    thumb.position.set(side * 0.044, -0.016, 0.01);
+    thumb.rotation.z = side * -0.58;
     g.add(thumb);
+    return g;
+  }
+
+  private finger(len: number, w: number): THREE.Group {
+    const g = new THREE.Group();
+    const shares = [0.36, 0.32, 0.26];
+    let y = 0;
+    for (let i = 0; i < 3; i += 1) {
+      const L = len * shares[i];
+      const ww = w * (1 - i * 0.1);
+      const plate = this.mesh(createPhalanx(L * 0.86, ww), this.mats.white);
+      plate.position.set(0, y - L * 0.5, 0.004);
+      g.add(plate);
+      if (i < 2) {
+        const joint = this.mesh(new THREE.SphereGeometry(ww * 0.28, 8, 6), this.mats.matte);
+        joint.position.set(0, y - L, 0.001);
+        g.add(joint);
+      } else {
+        const tip = this.panel(ww * 0.65, 0.006, 0.008, this.mats.matte, 0.002);
+        tip.position.set(0, y - L * 0.9, 0.002);
+        g.add(tip);
+      }
+      y -= L;
+    }
     return g;
   }
 

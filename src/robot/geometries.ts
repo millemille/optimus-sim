@@ -97,37 +97,36 @@ function loftArmor(rings: ArmorRing[], segs = 36): THREE.BufferGeometry {
 }
 
 /**
- * Front armor: two pec mounds + rounded deltoid caps as one surface.
- * Not a polar oval. The old rx=0.38 ring was the shield.
+ * One pec+deltoid wrap. Athletic width stays (v11 span, not v12 skinny).
+ * Top edge is two rounded caps and a neck well, not a flat shield bar
+ * and not a two-plate ridge.
  */
 function torsoSample(u: number, v: number): [number, number, number] {
   const au = Math.abs(u);
   let hw: number;
-  if (v < 0.22) hw = 0.102 + (v / 0.22) * 0.058;
-  else if (v < 0.52) hw = 0.16 + ((v - 0.22) / 0.3) * 0.055;
-  else if (v < 0.8) hw = 0.215 + ((v - 0.52) / 0.28) * 0.07;
-  else hw = 0.285 - ((v - 0.8) / 0.2) * 0.03 * (1 - au);
+  if (v < 0.2) hw = 0.112 + (v / 0.2) * 0.07;
+  else if (v < 0.48) hw = 0.182 + ((v - 0.2) / 0.28) * 0.078;
+  else if (v < 0.78) hw = 0.26 + ((v - 0.48) / 0.3) * 0.09;
+  else hw = 0.35 - ((v - 0.78) / 0.22) * 0.03 * (1 - au);
 
-  let y = 0.012 + v * 0.328;
-  if (v > 0.78 && au < 0.38) {
-    y -= ((0.38 - au) / 0.38) * (v - 0.78) * 0.11;
+  let y = 0.012 + v * 0.318;
+  if (v > 0.74 && au < 0.42) {
+    y -= ((0.42 - au) / 0.42) * (v - 0.74) * 0.085;
   }
-  if (v > 0.68 && au > 0.52) {
-    const du = (au - 0.52) / 0.48;
-    const dv = (v - 0.68) / 0.32;
-    const r = Math.hypot(du, dv);
-    if (r > 0.58) y -= (r - 0.58) * 0.07;
+  if (v > 0.84 && au > 0.78) {
+    const t = ((au - 0.78) / 0.22) * ((v - 0.84) / 0.16);
+    y -= Math.min(1, t) ** 2 * 0.035;
   }
-  if (v > 0.08 && v < 0.48 && au > 0.48) {
-    y -= ((au - 0.48) / 0.52) * Math.sin(((v - 0.08) / 0.4) * Math.PI) * 0.07;
+  if (v > 0.1 && v < 0.48 && au > 0.55) {
+    y -= ((au - 0.55) / 0.45) * Math.sin(((v - 0.1) / 0.38) * Math.PI) * 0.055;
   }
 
   const x = u * hw;
-  const pec = Math.exp(-((au - 0.4) ** 2) / 0.065) * Math.exp(-((v - 0.45) ** 2) / 0.05);
-  const del = Math.exp(-((au - 0.84) ** 2) / 0.04) * Math.exp(-((v - 0.74) ** 2) / 0.036);
-  const sternum = Math.exp(-(u * u) / 0.016) * (0.25 + 0.75 * Math.exp(-((v - 0.48) ** 2) / 0.07));
-  let z = 0.078 + pec * 0.118 + del * 0.088 - sternum * 0.038;
-  if (au > 0.7) z *= 1 - ((au - 0.7) / 0.3) * 0.5;
+  const pec = Math.exp(-((au - 0.36) ** 2) / 0.1) * Math.exp(-((v - 0.44) ** 2) / 0.075);
+  const del = Math.exp(-((au - 0.78) ** 2) / 0.06) * Math.exp(-((v - 0.76) ** 2) / 0.05);
+  const sternum = Math.exp(-(u * u) / 0.03) * Math.exp(-((v - 0.46) ** 2) / 0.12);
+  let z = 0.072 + pec * 0.082 + del * 0.07 - sternum * 0.016;
+  if (au > 0.7) z *= 1 - ((au - 0.7) / 0.3) * 0.38;
   return [x, y, z];
 }
 
@@ -184,13 +183,14 @@ export function createPecShell(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Short wrap from the pec cap onto the upper arm. Not a pad on the chest. */
+/** Deltoid mass that continues the pec wrap onto the arm. */
 export function createDeltoid(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: -0.03, rx: 0.06, rzFront: 0.07, rzBack: 0.04, lip: 0.92 },
-    { y: -0.07, rx: 0.056, rzFront: 0.064, rzBack: 0.036, ridge: 0.004 },
-    { y: -0.13, rx: 0.05, rzFront: 0.054, rzBack: 0.03 },
-    { y: -0.2, rx: 0.044, rzFront: 0.046, rzBack: 0.026, lip: 0.88 },
+    { y: 0.02, rx: 0.078, rzFront: 0.088, rzBack: 0.048, lip: 0.92 },
+    { y: -0.03, rx: 0.074, rzFront: 0.082, rzBack: 0.044, ridge: 0.005 },
+    { y: -0.09, rx: 0.062, rzFront: 0.068, rzBack: 0.036 },
+    { y: -0.16, rx: 0.052, rzFront: 0.054, rzBack: 0.03 },
+    { y: -0.22, rx: 0.044, rzFront: 0.044, rzBack: 0.024, lip: 0.88 },
   ];
   const geo = loftArmor(rings, 40);
   const pos = geo.attributes.position;
@@ -235,13 +235,13 @@ export function createThighShell(length: number): THREE.BufferGeometry {
   for (let i = 0; i <= steps; i += 1) {
     const t = i / steps;
     const quad = Math.exp(-(((t - 0.28) / 0.2) ** 2));
-    const rx = 0.082 + quad * 0.016 - t * 0.016;
+    const rx = 0.086 + quad * 0.018 - t * 0.014;
     rings.push({
       y: -t * length,
       rx,
-      rzFront: 0.1 + quad * 0.042 - t * 0.012,
-      rzBack: 0.068 + quad * 0.022 - t * 0.01,
-      ridge: 0.012 * quad,
+      rzFront: 0.118 + quad * 0.048 - t * 0.014,
+      rzBack: 0.05 + quad * 0.016 - t * 0.008,
+      ridge: 0.014 * quad,
       lip: i === 0 || i === steps ? 0.9 : 1,
       power: 0.72,
     });
@@ -258,9 +258,9 @@ export function createShinShell(length: number): THREE.BufferGeometry {
     const ridge = Math.max(0, 1 - Math.abs(t - 0.38) * 1.8);
     rings.push({
       y: -t * length,
-      rx: 0.074 - t * 0.018,
-      rzFront: 0.088 - t * 0.016,
-      rzBack: 0.058 - t * 0.01,
+      rx: 0.072 - t * 0.014,
+      rzFront: 0.096 - t * 0.018,
+      rzBack: 0.042 - t * 0.008,
       ridge: 0.012 * ridge,
       lip: i === 0 || i === steps ? 0.9 : 1,
       power: 0.7,
@@ -278,31 +278,30 @@ export function createKneeCap(): THREE.BufferGeometry {
   return geo;
 }
 
-/** White dorsal knuckle plate. Fingers attach as separate plates. */
+/** White knuckle plate over the back of the hand. */
 export function createDorsalPlate(): THREE.BufferGeometry {
-  const geo = new THREE.BoxGeometry(0.09, 0.058, 0.016);
+  const geo = new THREE.BoxGeometry(0.092, 0.052, 0.015);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const y = pos.getY(i);
     const x = pos.getX(i);
-    if (y < 0) pos.setX(i, x * 1.08);
-    if (y > 0) pos.setX(i, x * 0.88);
-    pos.setZ(i, pos.getZ(i) + 0.004 * (1 - (y + 0.029) / 0.058));
+    if (y < 0) pos.setX(i, x * 1.06);
+    pos.setZ(i, pos.getZ(i) + Math.max(0, -y) * 0.08);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
   return geo;
 }
 
-/** One white finger plate, tapered toward the tip. */
-export function createFingerPlate(length: number, width: number): THREE.BufferGeometry {
-  const geo = new THREE.BoxGeometry(width, length, 0.014);
+/** One white dorsal phalanx, rounded, for a segmented finger. */
+export function createPhalanx(length: number, width: number): THREE.BufferGeometry {
+  const geo = new THREE.BoxGeometry(width, length, 0.013);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
-    if (pos.getY(i) < 0) {
-      pos.setX(i, pos.getX(i) * 0.72);
-      pos.setZ(i, pos.getZ(i) * 0.8);
-    }
+    const y = pos.getY(i);
+    const taper = y < 0 ? 0.82 : 0.96;
+    pos.setX(i, pos.getX(i) * taper);
+    pos.setZ(i, pos.getZ(i) + 0.003);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
