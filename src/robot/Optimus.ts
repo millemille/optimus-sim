@@ -98,12 +98,12 @@ export class Optimus {
     this.lShoulder.rotation.set(
       THREE.MathUtils.lerp(this.lShoulder.rotation.x, 0.04, w),
       0,
-      THREE.MathUtils.lerp(this.lShoulder.rotation.z, 0.035, w),
+      THREE.MathUtils.lerp(this.lShoulder.rotation.z, 0.14, w),
     );
     this.rShoulder.rotation.set(
       THREE.MathUtils.lerp(this.rShoulder.rotation.x, 0.04, w),
       0,
-      THREE.MathUtils.lerp(this.rShoulder.rotation.z, -0.035, w),
+      THREE.MathUtils.lerp(this.rShoulder.rotation.z, -0.14, w),
     );
     this.lElbow.rotation.x = THREE.MathUtils.lerp(this.lElbow.rotation.x, 0.22, w);
     this.rElbow.rotation.x = THREE.MathUtils.lerp(this.rElbow.rotation.x, 0.22, w);
@@ -128,8 +128,8 @@ export class Optimus {
     this.rAnkle.rotation.x = -0.07 - Math.sin(t + Math.PI) * 0.14 * w;
     this.lShoulder.rotation.x = Math.sin(t + Math.PI) * 0.3 * w;
     this.rShoulder.rotation.x = Math.sin(t) * 0.3 * w;
-    this.lShoulder.rotation.z = 0.035;
-    this.rShoulder.rotation.z = -0.035;
+    this.lShoulder.rotation.z = 0.14;
+    this.rShoulder.rotation.z = -0.14;
     this.lElbow.rotation.x = 0.18 + Math.max(0, Math.sin(t + Math.PI)) * 0.16 * w;
     this.rElbow.rotation.x = 0.18 + Math.max(0, Math.sin(t)) * 0.16 * w;
     this.chest.rotation.x = 0.04 * w;
@@ -172,6 +172,7 @@ export class Optimus {
     const pecs = this.mesh(createPecShell(), this.mats.white);
     pecs.name = "pecShell";
     pecs.position.y = 0.02;
+    pecs.position.z = 0.018;
     this.chest.add(pecs);
 
     const waist = this.mesh(new THREE.CylinderGeometry(0.055, 0.072, 0.09, 16), this.mats.matte);
@@ -287,7 +288,7 @@ export class Optimus {
     hip.add(thigh);
 
     const tHousing = this.mesh(createThighShell(0.365), this.mats.white);
-    tHousing.position.set(0, -0.01, 0.016);
+    tHousing.position.set(0, -0.01, 0.042);
     thigh.add(tHousing);
 
     const knee = new THREE.Group();

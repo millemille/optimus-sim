@@ -125,12 +125,12 @@ export function createPecShell(): THREE.BufferGeometry {
       rzB = 0.036;
     } else if (t < 0.78) {
       const k = (t - 0.5) / 0.28;
-      rx = 0.24 + k * 0.12;
+      rx = 0.24 + k * 0.14;
       rzF = 0.178 - k * 0.012;
       rzB = 0.028;
     } else {
-      rx = 0.36;
-      rzF = 0.166;
+      rx = 0.38;
+      rzF = 0.17;
       rzB = 0.024;
     }
 
@@ -158,7 +158,7 @@ export function createPecShell(): THREE.BufferGeometry {
       let z: number;
       if (s >= 0) {
         z = rzF * s ** 0.42;
-        z *= 1 - 0.26 * Math.exp(-(x * x) / 0.00105);
+        z *= 1 - 0.34 * Math.exp(-(x * x) / 0.0009);
       } else {
         z = rzB * s;
       }
