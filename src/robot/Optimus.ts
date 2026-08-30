@@ -178,16 +178,16 @@ export class Optimus {
   }
 
   private buildNeck(): void {
-    const column = this.mesh(new THREE.CylinderGeometry(0.032, 0.04, 0.12, 20), this.mats.matte);
+    const column = this.mesh(new THREE.CylinderGeometry(0.034, 0.042, 0.145, 20), this.mats.matte);
     column.name = "neckColumn";
-    column.position.set(0, 0.382, 0.008);
+    column.position.set(0, 0.4, 0.006);
     this.chest.add(column);
   }
 
   private buildHead(): void {
     const head = new THREE.Group();
     head.name = "head";
-    head.position.set(0, 0.545, 0.01);
+    head.position.set(0, 0.568, 0.012);
     this.chest.add(head);
 
     const skull = this.mesh(createVisorSkull(), this.mats.skull);
@@ -202,21 +202,20 @@ export class Optimus {
 
     const pauldron = this.mesh(createPauldron(), this.mats.white);
     pauldron.name = side < 0 ? "pauldronL" : "pauldronR";
-    pauldron.rotation.z = side * 0.42;
-    pauldron.rotation.x = 0.08;
-    pauldron.position.set(side * 0.03, -0.004, 0.002);
+    pauldron.rotation.z = side * 0.18;
+    pauldron.position.set(side * 0.028, -0.03, 0.002);
     shoulder.add(pauldron);
 
-    const socket = this.mesh(new THREE.SphereGeometry(0.03, 12, 10), this.mats.joint);
-    socket.position.set(side * 0.032, -0.03, 0);
+    const socket = this.mesh(new THREE.SphereGeometry(0.018, 10, 8), this.mats.joint);
+    socket.position.set(side * 0.03, -0.028, 0);
     shoulder.add(socket);
 
     const upper = new THREE.Group();
-    upper.position.set(side * 0.032, -0.042, 0);
+    upper.position.set(side * 0.03, -0.038, 0);
     shoulder.add(upper);
 
-    const housing = this.mesh(createLimbShell(0.2, 0.052, 0.042, 0.02), this.mats.white);
-    housing.position.y = -0.012;
+    const housing = this.mesh(createLimbShell(0.195, 0.05, 0.042, 0.016), this.mats.white);
+    housing.position.y = -0.028;
     upper.add(housing);
 
     const elbow = new THREE.Group();
@@ -233,7 +232,7 @@ export class Optimus {
     forearm.position.y = -0.022;
     elbow.add(forearm);
 
-    const fHousing = this.mesh(createLimbShell(0.175, 0.044, 0.034, 0.018), this.mats.white);
+    const fHousing = this.mesh(createLimbShell(0.175, 0.042, 0.034, 0.014), this.mats.white);
     fHousing.position.y = -0.01;
     forearm.add(fHousing);
 
@@ -255,8 +254,8 @@ export class Optimus {
     palm.position.y = -0.028;
     g.add(palm);
 
-    const plate = this.panel(0.054, 0.042, 0.007, this.mats.white, 0.004);
-    plate.position.set(0, -0.014, 0.012);
+    const plate = this.panel(0.058, 0.052, 0.01, this.mats.white, 0.004);
+    plate.position.set(0, -0.012, 0.016);
     g.add(plate);
 
     const xs = [-0.022, -0.008, 0.007, 0.021];
@@ -299,7 +298,7 @@ export class Optimus {
     hip.position.set(side * 0.088, -0.028, 0);
     this.hips.add(hip);
 
-    const ball = this.mesh(new THREE.SphereGeometry(0.04, 14, 12), this.mats.joint);
+    const ball = this.mesh(new THREE.SphereGeometry(0.028, 12, 10), this.mats.joint);
     hip.add(ball);
     const motor = this.mesh(new THREE.CylinderGeometry(0.016, 0.02, 0.07, 10), this.mats.actuator);
     motor.rotation.z = side * 0.48;
@@ -310,7 +309,7 @@ export class Optimus {
     thigh.position.y = -0.022;
     hip.add(thigh);
 
-    const tHousing = this.mesh(createLimbShell(0.36, 0.06, 0.048, 0.026), this.mats.white);
+    const tHousing = this.mesh(createLimbShell(0.36, 0.064, 0.05, 0.016), this.mats.white);
     tHousing.position.y = -0.012;
     thigh.add(tHousing);
 
@@ -319,15 +318,21 @@ export class Optimus {
     thigh.add(knee);
     hip.userData.knee = knee;
 
-    const disk = this.mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.07, 18), this.mats.joint);
-    disk.rotation.z = Math.PI / 2;
-    knee.add(disk);
+    const axle = this.mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.072, 12), this.mats.joint);
+    axle.rotation.z = Math.PI / 2;
+    knee.add(axle);
+    for (const x of [-0.034, 0.034]) {
+      const disk = this.mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.01, 22), this.mats.white);
+      disk.rotation.z = Math.PI / 2;
+      disk.position.x = x;
+      knee.add(disk);
+    }
 
     const shin = new THREE.Group();
     shin.position.y = -0.022;
     knee.add(shin);
 
-    const sHousing = this.mesh(createLimbShell(0.38, 0.048, 0.036, 0.02), this.mats.white);
+    const sHousing = this.mesh(createLimbShell(0.38, 0.05, 0.038, 0.015), this.mats.white);
     sHousing.position.y = -0.01;
     shin.add(sHousing);
 
