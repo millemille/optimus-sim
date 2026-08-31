@@ -183,6 +183,11 @@ export class Optimus {
       hub.rotation.z = Math.PI / 2;
       hub.position.set(side * 0.153, -0.014, -0.002);
       this.hips.add(hub);
+
+      const hipBridge = this.panel(0.054, 0.035, 0.035, this.mats.white, 0.012);
+      hipBridge.position.set(side * 0.09, 0.055, 0.04);
+      hipBridge.rotation.z = side * -0.22;
+      this.hips.add(hipBridge);
     }
 
     const sacrum = this.panel(0.11, 0.105, 0.028, this.mats.metal, 0.018);
@@ -203,7 +208,8 @@ export class Optimus {
 
     const chestFace = this.mesh(createChestFace(), this.mats.white);
     chestFace.name = "chestFace";
-    chestFace.position.set(0, 0.012, 0.111);
+    chestFace.position.set(0, 0.014, 0.102);
+    chestFace.scale.set(0.94, 0.96, 1);
     this.chest.add(chestFace);
 
     const back = this.mesh(createBackShell(), this.mats.white);
@@ -229,7 +235,7 @@ export class Optimus {
     waist.position.y = -0.018;
     this.chest.add(waist);
 
-    const buckle = this.mesh(createWaistBuckle(), this.mats.metal);
+    const buckle = this.mesh(createWaistBuckle(), this.mats.white);
     buckle.position.set(0, -0.036, 0.07);
     this.chest.add(buckle);
   }

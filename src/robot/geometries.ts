@@ -167,6 +167,15 @@ export function createChestFace(): THREE.BufferGeometry {
     curveSegments: 8,
   });
   geo.translate(0, 0, -0.007);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const across = Math.max(0, 1 - (x / 0.2) ** 2);
+    const vertical = Math.max(0, 1 - ((y - 0.12) / 0.22) ** 2);
+    pos.setZ(i, pos.getZ(i) + across * vertical * 0.025);
+  }
+  pos.needsUpdate = true;
   geo.computeVertexNormals();
   return geo;
 }
