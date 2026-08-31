@@ -118,17 +118,18 @@ function loftArmor(
  */
 export function createPecShell(): THREE.BufferGeometry {
   const rings = [
-    { y: 0.266, rx: 0.098, zFront: 0.05, zSide: 0.038 },
-    { y: 0.246, rx: 0.172, zFront: 0.06, zSide: 0.042 },
-    { y: 0.228, rx: 0.3, zFront: 0.072, zSide: 0.05 },
-    { y: 0.212, rx: 0.368, zFront: 0.08, zSide: 0.054 },
-    { y: 0.196, rx: 0.388, zFront: 0.084, zSide: 0.056 },
-    { y: 0.176, rx: 0.382, zFront: 0.082, zSide: 0.054 },
-    { y: 0.152, rx: 0.36, zFront: 0.078, zSide: 0.05 },
-    { y: 0.124, rx: 0.312, zFront: 0.074, zSide: 0.044 },
-    { y: 0.09, rx: 0.232, zFront: 0.07, zSide: 0.038 },
-    { y: 0.05, rx: 0.198, zFront: 0.058, zSide: 0.03 },
-    { y: 0.012, rx: 0.17, zFront: 0.042, zSide: 0.022 },
+    { y: 0.27, rx: 0.09, zFront: 0.048, zSide: 0.036 },
+    { y: 0.254, rx: 0.132, zFront: 0.056, zSide: 0.04 },
+    { y: 0.238, rx: 0.188, zFront: 0.064, zSide: 0.046 },
+    { y: 0.222, rx: 0.268, zFront: 0.074, zSide: 0.05 },
+    { y: 0.206, rx: 0.348, zFront: 0.08, zSide: 0.054 },
+    { y: 0.19, rx: 0.388, zFront: 0.084, zSide: 0.056 },
+    { y: 0.17, rx: 0.38, zFront: 0.082, zSide: 0.054 },
+    { y: 0.148, rx: 0.352, zFront: 0.078, zSide: 0.05 },
+    { y: 0.122, rx: 0.3, zFront: 0.074, zSide: 0.044 },
+    { y: 0.088, rx: 0.228, zFront: 0.068, zSide: 0.036 },
+    { y: 0.048, rx: 0.196, zFront: 0.056, zSide: 0.028 },
+    { y: 0.01, rx: 0.168, zFront: 0.04, zSide: 0.02 },
   ];
   const segs = 40;
   const cols = segs + 1;
