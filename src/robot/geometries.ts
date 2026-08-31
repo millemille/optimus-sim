@@ -110,49 +110,67 @@ function loftArmor(
 }
 
 /**
- * One filled pec-and-deltoid. The loft of ovals went to z≈0 at
- * the sides, so the front camera saw a vest above two arm tubes.
- * This is the XY silhouette of pec + round shoulder + sleeve
- * dump, extruded so that row is a real front face. Not a loft,
- * not a pauldron ball, not a T-shelf. Back is flattened.
+ * Pec and deltoid as one front shell. Every column across the
+ * shoulder has z well in front of the thorax, so the camera
+ * cannot see a hole. Width holds through the sleeve, then
+ * dumps. No oval sides, no pauldron, no extruded card, no back
+ * wings.
  */
 export function createPecShell(): THREE.BufferGeometry {
-  const shape = new THREE.Shape();
-  shape.moveTo(0, 0.256);
-  shape.bezierCurveTo(0.034, 0.258, 0.058, 0.276, 0.092, 0.27);
-  shape.bezierCurveTo(0.16, 0.26, 0.252, 0.24, 0.338, 0.224);
-  shape.bezierCurveTo(0.378, 0.214, 0.388, 0.196, 0.372, 0.174);
-  shape.bezierCurveTo(0.352, 0.152, 0.312, 0.128, 0.262, 0.102);
-  shape.bezierCurveTo(0.214, 0.074, 0.16, 0.03, 0, 0.014);
-  shape.bezierCurveTo(-0.16, 0.03, -0.214, 0.074, -0.262, 0.102);
-  shape.bezierCurveTo(-0.312, 0.128, -0.352, 0.152, -0.372, 0.174);
-  shape.bezierCurveTo(-0.388, 0.196, -0.378, 0.214, -0.338, 0.224);
-  shape.bezierCurveTo(-0.252, 0.24, -0.16, 0.26, -0.092, 0.27);
-  shape.bezierCurveTo(-0.058, 0.276, -0.034, 0.258, 0, 0.256);
-  shape.closePath();
+  const rings = [
+    { y: 0.266, rx: 0.098, zFront: 0.05, zSide: 0.038 },
+    { y: 0.246, rx: 0.172, zFront: 0.06, zSide: 0.042 },
+    { y: 0.228, rx: 0.3, zFront: 0.072, zSide: 0.05 },
+    { y: 0.212, rx: 0.368, zFront: 0.08, zSide: 0.054 },
+    { y: 0.196, rx: 0.388, zFront: 0.084, zSide: 0.056 },
+    { y: 0.176, rx: 0.382, zFront: 0.082, zSide: 0.054 },
+    { y: 0.152, rx: 0.36, zFront: 0.078, zSide: 0.05 },
+    { y: 0.124, rx: 0.312, zFront: 0.074, zSide: 0.044 },
+    { y: 0.09, rx: 0.232, zFront: 0.07, zSide: 0.038 },
+    { y: 0.05, rx: 0.198, zFront: 0.058, zSide: 0.03 },
+    { y: 0.012, rx: 0.17, zFront: 0.042, zSide: 0.022 },
+  ];
+  const segs = 40;
+  const cols = segs + 1;
+  const positions: number[] = [];
+  const indices: number[] = [];
 
-  const geo = new THREE.ExtrudeGeometry(shape, {
-    depth: 0.088,
-    bevelEnabled: true,
-    bevelThickness: 0.01,
-    bevelSize: 0.007,
-    bevelSegments: 2,
-    curveSegments: 28,
-    steps: 1,
-  });
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i += 1) {
-    const x = pos.getX(i);
-    const y = pos.getY(i);
-    const z0 = pos.getZ(i);
-    const t = THREE.MathUtils.clamp(z0 / 0.1, 0, 1);
-    const ax = Math.abs(x);
-    const pec = Math.exp(-(x * x) / 0.03) * Math.exp(-((y - 0.11) ** 2) / 0.014);
-    const del = THREE.MathUtils.smoothstep(0.22, 0.38, ax);
-    const zFront = 0.052 + pec * 0.034 - del * 0.016;
-    pos.setZ(i, THREE.MathUtils.lerp(0.006, zFront, t));
+  for (const ring of rings) {
+    for (let j = 0; j <= segs; j += 1) {
+      const xn = (j / segs) * 2 - 1;
+      let x = ring.rx * xn;
+      let y = ring.y;
+      let z = ring.zSide + (ring.zFront - ring.zSide) * (1 - xn * xn);
+      if (y > 0.234) {
+        const u = Math.exp(-((x / 0.078) ** 2)) * ((y - 0.234) / 0.032);
+        y -= u * 0.034;
+      }
+      if (Math.abs(x) < 0.18) {
+        const pec = Math.exp(-(x * x) / 0.028) * Math.exp(-((y - 0.11) ** 2) / 0.012);
+        z += pec * 0.018;
+      }
+      if (Math.abs(x) > 0.33 && y > 0.15) {
+        const t = Math.min(1, (Math.abs(x) - 0.33) / 0.06);
+        y -= t * 0.018;
+      }
+      positions.push(x, y, z);
+    }
   }
-  pos.needsUpdate = true;
+
+  const last = rings.length - 1;
+  for (let i = 0; i < last; i += 1) {
+    for (let j = 0; j < segs; j += 1) {
+      const a = i * cols + j;
+      const b = a + 1;
+      const c = a + cols;
+      const d = c + 1;
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
   geo.computeVertexNormals();
   return geo;
 }
