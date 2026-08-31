@@ -228,7 +228,7 @@ function buildDeltoidWrap(side: number): THREE.BufferGeometry {
   for (let i = 0; i <= rings; i += 1) {
     const theta = 0.28 + (i / rings) * 2.35;
     for (let j = 0; j <= segs; j += 1) {
-      const phi = -1.05 + (j / segs) * 2.1;
+      const phi = -1.05 + ((side > 0 ? j : segs - j) / segs) * 2.1;
       const x = cx + side * rx * Math.sin(theta) * Math.sin(phi);
       const y = cy + ry * Math.cos(theta);
       const z = cz + rz * Math.sin(theta) * Math.cos(phi);
@@ -236,7 +236,7 @@ function buildDeltoidWrap(side: number): THREE.BufferGeometry {
     }
   }
 
-  const geo = stitchGrid(positions, rings, segs + 1, true);
+  const geo = stitchGrid(positions, rings, segs + 1);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
