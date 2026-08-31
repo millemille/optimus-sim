@@ -121,10 +121,10 @@ export function createPecShell(): THREE.BufferGeometry {
     { y: 0.26, rx: 0.168, rzFront: 0.068, rzBack: 0.03, power: 0.48 },
     { y: 0.234, rx: 0.268, rzFront: 0.08, rzBack: 0.03, power: 0.46 },
     { y: 0.214, rx: 0.348, rzFront: 0.086, rzBack: 0.03, power: 0.44 },
-    { y: 0.196, rx: 0.398, rzFront: 0.084, rzBack: 0.028, power: 0.42 },
-    { y: 0.172, rx: 0.388, rzFront: 0.09, rzBack: 0.026, power: 0.44 },
-    { y: 0.146, rx: 0.372, rzFront: 0.1, rzBack: 0.026, power: 0.44, ridge: 0.006 },
-    { y: 0.118, rx: 0.338, rzFront: 0.108, rzBack: 0.024, power: 0.46, ridge: 0.008 },
+    { y: 0.196, rx: 0.398, rzFront: 0.1, rzBack: 0.028, power: 0.42 },
+    { y: 0.172, rx: 0.388, rzFront: 0.104, rzBack: 0.026, power: 0.44 },
+    { y: 0.146, rx: 0.372, rzFront: 0.11, rzBack: 0.026, power: 0.44, ridge: 0.006 },
+    { y: 0.118, rx: 0.338, rzFront: 0.112, rzBack: 0.024, power: 0.46, ridge: 0.008 },
     { y: 0.086, rx: 0.246, rzFront: 0.1, rzBack: 0.024, power: 0.48, ridge: 0.01 },
     { y: 0.048, rx: 0.198, rzFront: 0.07, rzBack: 0.022, power: 0.5 },
     { y: 0.008, rx: 0.172, rzFront: 0.046, rzBack: 0.02, power: 0.5, lip: 0.9 },
@@ -148,8 +148,8 @@ export function createPecShell(): THREE.BufferGeometry {
       const t = Math.min(1, Math.abs(x) / 0.2);
       y += t * t * 0.03;
     }
-    if (Math.abs(x) > 0.22 && y > 0.1 && y < 0.22 && z > -0.012) {
-      z = Math.max(z, 0.05);
+    if (Math.abs(x) > 0.2 && y > 0.1 && y < 0.22 && z > -0.012) {
+      z = Math.max(z, 0.118);
     }
     if (z > 0 && Math.abs(x) < 0.2) {
       const pec = Math.exp(-(x * x) / 0.026) * Math.exp(-((y - 0.12) ** 2) / 0.01);
@@ -208,10 +208,10 @@ export function createMidriff(): THREE.BufferGeometry {
 /** White sleeve that grows up into the pec wrap. Not a pauldron ball. */
 export function createDeltoid(side: number): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0.082, rx: 0.06, rzFront: 0.068, rzBack: 0.028, power: 0.48 },
-    { y: 0.028, rx: 0.056, rzFront: 0.062, rzBack: 0.026, power: 0.5 },
-    { y: -0.05, rx: 0.05, rzFront: 0.054, rzBack: 0.022, power: 0.5 },
-    { y: -0.128, rx: 0.046, rzFront: 0.048, rzBack: 0.02, power: 0.5, lip: 0.9 },
+    { y: 0.036, rx: 0.058, rzFront: 0.064, rzBack: 0.026, power: 0.5 },
+    { y: -0.02, rx: 0.054, rzFront: 0.06, rzBack: 0.024, power: 0.5 },
+    { y: -0.08, rx: 0.05, rzFront: 0.054, rzBack: 0.022, power: 0.5 },
+    { y: -0.14, rx: 0.046, rzFront: 0.048, rzBack: 0.02, power: 0.5, lip: 0.9 },
   ];
   const geo = loftArmor(rings, 36);
   const pos = geo.attributes.position;
@@ -219,7 +219,7 @@ export function createDeltoid(side: number): THREE.BufferGeometry {
     const x = pos.getX(i);
     const y = pos.getY(i);
     if (x * side < 0) {
-      const towardPec = y > 0 ? 0.55 + (y / 0.082) * 0.7 : 0.4;
+      const towardPec = y > 0 ? 0.5 + (y / 0.036) * 0.55 : 0.4;
       pos.setX(i, x * towardPec);
     }
   }

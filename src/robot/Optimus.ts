@@ -208,7 +208,7 @@ export class Optimus {
     shoulder.add(upper);
 
     const sleeve = this.mesh(createDeltoid(side), this.mats.white);
-    sleeve.position.set(0, 0.01, 0.006);
+    sleeve.position.set(0, -0.008, 0.008);
     upper.add(sleeve);
 
     const housing = this.mesh(createLimbShell(0.2, 0.048, 0.04, 0.046), this.mats.white);
