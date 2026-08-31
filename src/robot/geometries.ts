@@ -140,6 +140,37 @@ export function createPecShell(): THREE.BufferGeometry {
   return geo;
 }
 
+/** Beveled front shield that gives Optimus its recognizable clean chest face. */
+export function createChestFace(): THREE.BufferGeometry {
+  const shape = new THREE.Shape();
+  shape.moveTo(-0.128, 0.285);
+  shape.lineTo(-0.19, 0.22);
+  shape.lineTo(-0.184, 0.09);
+  shape.lineTo(-0.145, -0.025);
+  shape.lineTo(-0.082, -0.05);
+  shape.lineTo(0, -0.056);
+  shape.lineTo(0.082, -0.05);
+  shape.lineTo(0.145, -0.025);
+  shape.lineTo(0.184, 0.09);
+  shape.lineTo(0.19, 0.22);
+  shape.lineTo(0.128, 0.285);
+  shape.lineTo(0.054, 0.3);
+  shape.lineTo(0, 0.258);
+  shape.lineTo(-0.054, 0.3);
+  shape.closePath();
+  const geo = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.014,
+    bevelEnabled: true,
+    bevelSegments: 3,
+    bevelSize: 0.008,
+    bevelThickness: 0.006,
+    curveSegments: 8,
+  });
+  geo.translate(0, 0, -0.007);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 /** White shoulder-blade shell seen in rear and three-quarter views. */
 export function createBackShell(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
@@ -216,11 +247,11 @@ export function createWaistBuckle(): THREE.BufferGeometry {
 /** Compact black mechanical pelvis. Hips stay exposed, not covered by shorts. */
 export function createPelvis(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.12, 0.08),
-    new THREE.Vector2(0.128, 0.03),
-    new THREE.Vector2(0.122, -0.02),
-    new THREE.Vector2(0.1, -0.08),
-    new THREE.Vector2(0.078, -0.13),
+    new THREE.Vector2(0.108, 0.065),
+    new THREE.Vector2(0.116, 0.025),
+    new THREE.Vector2(0.108, -0.018),
+    new THREE.Vector2(0.086, -0.062),
+    new THREE.Vector2(0.062, -0.1),
   ];
   const geo = new THREE.LatheGeometry(profile, 28);
   const pos = geo.attributes.position;
@@ -236,11 +267,11 @@ export function createPelvis(): THREE.BufferGeometry {
 /** Slim black fill between the hip motors. Not a white brief. */
 export function createCrotchGuard(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.07, 0.06),
-    new THREE.Vector2(0.074, 0.01),
-    new THREE.Vector2(0.068, -0.05),
-    new THREE.Vector2(0.056, -0.11),
-    new THREE.Vector2(0.044, -0.16),
+    new THREE.Vector2(0.058, 0.045),
+    new THREE.Vector2(0.06, 0.005),
+    new THREE.Vector2(0.052, -0.038),
+    new THREE.Vector2(0.04, -0.08),
+    new THREE.Vector2(0.03, -0.12),
   ];
   const geo = new THREE.LatheGeometry(profile, 20);
   const pos = geo.attributes.position;
@@ -255,10 +286,10 @@ export function createCrotchGuard(): THREE.BufferGeometry {
 
 /** Rounded white shoulder cap. Sits on the joint, does not wrap the pec. */
 export function createShoulderCap(side: number): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(0.062, 22, 16, 0, Math.PI * 2, 0, Math.PI * 0.78);
-  geo.scale(1.22, 0.78, 1.04);
-  geo.rotateZ(side * -0.35);
-  geo.translate(side * 0.012, 0.008, 0.006);
+  const geo = new THREE.SphereGeometry(0.058, 28, 18);
+  geo.scale(1.16, 0.82, 1.06);
+  geo.rotateZ(side * -0.18);
+  geo.translate(side * 0.008, 0, 0.004);
   geo.computeVertexNormals();
   return geo;
 }

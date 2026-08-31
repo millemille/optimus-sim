@@ -4,6 +4,7 @@ import {
   createBackShell,
   createBoot,
   createCalfShell,
+  createChestFace,
   createCrotchGuard,
   createDeltoid,
   createFinger,
@@ -200,6 +201,11 @@ export class Optimus {
     pecs.position.z = 0.008;
     this.chest.add(pecs);
 
+    const chestFace = this.mesh(createChestFace(), this.mats.white);
+    chestFace.name = "chestFace";
+    chestFace.position.set(0, 0.012, 0.111);
+    this.chest.add(chestFace);
+
     const back = this.mesh(createBackShell(), this.mats.white);
     back.name = "backShell";
     back.position.set(0, 0.012, -0.008);
@@ -259,11 +265,11 @@ export class Optimus {
 
   private arm(side: number): THREE.Group {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.268, 0.252, 0.012);
+    shoulder.position.set(side * 0.26, 0.24, 0.01);
     this.chest.add(shoulder);
 
     const cap = this.mesh(createShoulderCap(side), this.mats.white);
-    cap.position.set(side * 0.018, 0.016, 0.006);
+    cap.position.set(side * 0.012, 0.006, 0.004);
     shoulder.add(cap);
 
     const socket = this.mesh(new THREE.SphereGeometry(0.016, 10, 8), this.mats.joint);
@@ -382,7 +388,8 @@ export class Optimus {
     thigh.add(tHousing);
 
     const thighInset = this.panel(0.034, 0.205, 0.018, this.mats.joint, 0.012);
-    thighInset.position.set(side * -0.045, -0.16, 0.093);
+    thighInset.position.set(side * -0.05, -0.15, 0.067);
+    thighInset.scale.set(0.72, 0.78, 1);
     thighInset.rotation.z = side * 0.04;
     thigh.add(thighInset);
     const hamstring = this.panel(0.065, 0.21, 0.026, this.mats.white, 0.022);

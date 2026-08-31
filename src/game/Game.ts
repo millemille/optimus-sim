@@ -59,7 +59,7 @@ export class Game {
     if (this.studio) {
       this.scene.environment = null;
       this.renderer.toneMapping = THREE.NeutralToneMapping;
-      this.renderer.toneMappingExposure = 0.94;
+      this.renderer.toneMappingExposure = 1.08;
       this.scene.fog = null;
       this.scene.background = new THREE.Color(0x5c5a56);
       this.factory.group.visible = false;
