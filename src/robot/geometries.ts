@@ -121,9 +121,9 @@ export function createPecShell(): THREE.BufferGeometry {
     { y: 0.234, rx: 0.188, zF: 0.1 },
     { y: 0.214, rx: 0.258, zF: 0.11 },
     { y: 0.194, rx: 0.338, zF: 0.116 },
-    { y: 0.172, rx: 0.4, zF: 0.112 },
-    { y: 0.15, rx: 0.386, zF: 0.102 },
-    { y: 0.126, rx: 0.336, zF: 0.092 },
+    { y: 0.176, rx: 0.4, zF: 0.112 },
+    { y: 0.158, rx: 0.396, zF: 0.108 },
+    { y: 0.14, rx: 0.37, zF: 0.098 },
     { y: 0.096, rx: 0.248, zF: 0.08 },
     { y: 0.056, rx: 0.2, zF: 0.066 },
     { y: 0.016, rx: 0.172, zF: 0.052 },
@@ -142,7 +142,7 @@ export function createPecShell(): THREE.BufferGeometry {
     }
     if (Math.abs(rx * xn) > 0.22 && y > 0.12) {
       const t = Math.min(1, (Math.abs(rx * xn) - 0.22) / 0.18);
-      y -= t * t * 0.048;
+      y -= t * t * 0.04;
     }
     return y;
   };
