@@ -218,12 +218,12 @@ function buildDeltoidWrap(side: number): THREE.BufferGeometry {
   const rings = 14;
   const segs = 22;
   const positions: number[] = [];
-  const cx = side * 0.3;
-  const cy = 0.188;
+  const cx = side * 0.312;
+  const cy = 0.198;
   const cz = 0.022;
-  const rx = 0.096;
-  const ry = 0.082;
-  const rz = 0.07;
+  const rx = 0.106;
+  const ry = 0.09;
+  const rz = 0.072;
 
   for (let i = 0; i <= rings; i += 1) {
     const theta = 0.28 + (i / rings) * 2.35;

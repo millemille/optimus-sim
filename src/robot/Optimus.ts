@@ -156,7 +156,7 @@ export class Optimus {
     this.hips.add(bowl);
 
     const crotch = this.mesh(createCrotchGuard(), this.mats.matte);
-    crotch.position.set(0, -0.1, 0.055);
+    crotch.position.set(0, -0.12, 0.055);
     this.hips.add(crotch);
 
     const bridge = this.panel(0.36, 0.34, 0.18, this.mats.matte, 0.032);
