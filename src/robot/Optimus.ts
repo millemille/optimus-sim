@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
+  createCrotchGuard,
   createDeltoid,
   createFinger,
   createKneeCap,
@@ -150,11 +151,15 @@ export class Optimus {
 
   private buildPelvis(): void {
     const bowl = this.mesh(createPelvis(), this.mats.matte);
-    bowl.position.y = -0.008;
+    bowl.position.y = -0.02;
     this.hips.add(bowl);
 
-    const bridge = this.panel(0.3, 0.12, 0.1, this.mats.matte, 0.02);
-    bridge.position.set(0, -0.012, 0.028);
+    const crotch = this.mesh(createCrotchGuard(), this.mats.matte);
+    crotch.position.set(0, -0.08, 0.04);
+    this.hips.add(crotch);
+
+    const bridge = this.panel(0.26, 0.16, 0.12, this.mats.matte, 0.024);
+    bridge.position.set(0, -0.04, 0.036);
     this.hips.add(bridge);
 
     for (const side of [-1, 1]) {
@@ -181,7 +186,7 @@ export class Optimus {
     this.chest.add(pecs);
 
     const waist = this.mesh(createMidriff(), this.mats.matte);
-    waist.position.y = -0.018;
+    waist.position.y = -0.04;
     this.chest.add(waist);
   }
 
@@ -260,28 +265,28 @@ export class Optimus {
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
 
-    const palm = this.panel(0.086, 0.062, 0.04, this.mats.matte, 0.018);
-    palm.position.set(0, -0.038, 0.002);
+    const palm = this.panel(0.08, 0.058, 0.05, this.mats.matte, 0.022);
+    palm.position.set(0, -0.034, 0.006);
     g.add(palm);
-    const dorsal = this.panel(0.082, 0.056, 0.016, this.mats.white, 0.014);
-    dorsal.position.set(0, -0.034, 0.022);
+    const dorsal = this.panel(0.076, 0.05, 0.02, this.mats.white, 0.016);
+    dorsal.position.set(0, -0.03, 0.028);
     g.add(dorsal);
 
-    const xs = [-0.03, -0.01, 0.01, 0.029];
-    const lens = [0.07, 0.078, 0.074, 0.064];
-    const widths = [0.022, 0.024, 0.023, 0.02];
-    const fans = [-0.1, -0.028, 0.034, 0.12];
+    const xs = [-0.028, -0.01, 0.008, 0.026];
+    const lens = [0.052, 0.058, 0.056, 0.048];
+    const widths = [0.026, 0.028, 0.027, 0.024];
+    const fans = [-0.12, -0.03, 0.04, 0.14];
     for (let i = 0; i < 4; i += 1) {
       const p = this.mesh(createFinger(lens[i], widths[i]), this.mats.white);
-      p.position.set(xs[i], -0.062, 0.012);
+      p.position.set(xs[i], -0.05, 0.016);
       p.rotation.z = fans[i];
-      p.rotation.x = 0.16;
+      p.rotation.x = 0.38;
       g.add(p);
     }
 
-    const thumb = this.mesh(createFinger(0.048, 0.02), this.mats.white);
-    thumb.position.set(side * 0.036, -0.018, 0.018);
-    thumb.rotation.set(0.55, side * 0.24, side * 0.95);
+    const thumb = this.mesh(createFinger(0.042, 0.024), this.mats.white);
+    thumb.position.set(side * 0.032, -0.012, 0.022);
+    thumb.rotation.set(0.7, side * 0.3, side * 0.85);
     g.add(thumb);
     return g;
   }
