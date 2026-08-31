@@ -1,11 +1,13 @@
 import * as THREE from "three";
 import { CameraRig } from "./CameraRig.ts";
 
-export type StudioView = "front" | "q" | "side";
+export type StudioView = "front" | "q" | "side" | "back" | "spin";
 
 export function studioViewFromUrl(): StudioView | null {
   const raw = new URLSearchParams(window.location.search).get("studio");
-  if (raw === "front" || raw === "q" || raw === "side") return raw;
+  if (raw === "front" || raw === "q" || raw === "side" || raw === "back" || raw === "spin") {
+    return raw;
+  }
   return null;
 }
 

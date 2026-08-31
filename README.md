@@ -55,4 +55,8 @@ Portrait stills (idle, studio lights, no HUD):
 http://localhost:5173/?studio=front
 http://localhost:5173/?studio=q
 http://localhost:5173/?studio=side
+http://localhost:5173/?studio=back
+http://localhost:5173/?studio=spin
 ```
+
+`studio=spin` continuously orbits the camera for a full 360-degree model inspection.

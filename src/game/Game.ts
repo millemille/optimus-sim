@@ -19,6 +19,7 @@ export class Game {
   private readonly mission: Mission;
   private readonly hud: Hud;
   private readonly clock = new THREE.Clock();
+  private studioAngle = 0;
   private playing = false;
   private started = false;
   private raf = 0;
@@ -137,6 +138,10 @@ export class Game {
     const dt = Math.min(this.clock.getDelta(), 0.05);
     if (this.studio) {
       this.player.robot.update(dt, false, 0, false);
+      if (this.studio === "spin") {
+        this.studioAngle = (this.studioAngle + dt * 0.5) % (Math.PI * 2);
+        this.cameraRig.yaw = this.studioAngle;
+      }
       this.cameraRig.update(this.player.position);
       this.renderer.render(this.scene, this.camera);
       return;

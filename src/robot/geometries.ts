@@ -5,35 +5,19 @@ import * as THREE from "three";
  * Matches the 2024–2025 Tesla Optimus showroom head.
  */
 export function createVisorSkull(): THREE.BufferGeometry {
-  const profile = [
-    new THREE.Vector2(0.0, -0.094),
-    new THREE.Vector2(0.028, -0.092),
-    new THREE.Vector2(0.054, -0.078),
-    new THREE.Vector2(0.076, -0.054),
-    new THREE.Vector2(0.09, -0.026),
-    new THREE.Vector2(0.096, 0.004),
-    new THREE.Vector2(0.098, 0.034),
-    new THREE.Vector2(0.092, 0.06),
-    new THREE.Vector2(0.078, 0.082),
-    new THREE.Vector2(0.056, 0.098),
-    new THREE.Vector2(0.028, 0.11),
-    new THREE.Vector2(0.0, 0.116),
-  ];
-  const geo = new THREE.LatheGeometry(profile, 64);
+  const geo = new THREE.SphereGeometry(1, 64, 40);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
     const y = pos.getY(i);
     const z = pos.getZ(i);
-    // Helmet visor: wider than tall, real depth, flattened face — not a disk or a bulb.
-    pos.setX(i, x * 1.1);
-    if (z > 0) {
-      const face = Math.min(1, z / 0.1);
-      pos.setZ(i, z * (0.8 - 0.12 * face * face));
-    } else {
-      pos.setZ(i, z * 0.9);
-    }
-    if (y < -0.02) pos.setY(i, y * 0.94);
+    const crown = 1 - 0.08 * Math.max(0, y);
+    pos.setX(i, x * 0.096 * crown);
+    pos.setY(i, y * 0.122);
+    // The real visor has a shallow face and a fuller helmet at the rear.
+    const front = z > 0 ? 0.068 : 0.082;
+    const facePlane = z > 0 ? 0.006 * Math.pow(Math.abs(z), 3) : 0;
+    pos.setZ(i, z * front - facePlane);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -149,6 +133,32 @@ export function createPecShell(): THREE.BufferGeometry {
     if (z > 0.04 && y > 0.06 && y < 0.22) {
       const valley = Math.exp(-(x * x) / 0.004) * Math.exp(-((y - 0.15) ** 2) / 0.012);
       pos.setZ(i, z - valley * 0.012);
+    }
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** White shoulder-blade shell seen in rear and three-quarter views. */
+export function createBackShell(): THREE.BufferGeometry {
+  const rings: ArmorRing[] = [
+    { y: 0.28, rx: 0.105, rzFront: 0.025, rzBack: 0.048, power: 0.7, lip: 0.9 },
+    { y: 0.22, rx: 0.19, rzFront: 0.034, rzBack: 0.064, power: 0.62 },
+    { y: 0.13, rx: 0.2, rzFront: 0.038, rzBack: 0.072, power: 0.58 },
+    { y: 0.04, rx: 0.17, rzFront: 0.03, rzBack: 0.06, power: 0.62 },
+    { y: -0.03, rx: 0.13, rzFront: 0.024, rzBack: 0.046, power: 0.68, lip: 0.92 },
+  ];
+  const geo = loftArmor(rings, 40);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const x = pos.getX(i);
+    const z = pos.getZ(i);
+    if (z > 0) pos.setZ(i, z * 0.32);
+    // Shallow center channel keeps the rear from reading as one plastic blob.
+    if (z < 0) {
+      const channel = Math.exp(-(x * x) / 0.0025);
+      pos.setZ(i, z + channel * 0.014);
     }
   }
   pos.needsUpdate = true;
@@ -342,6 +352,25 @@ export function createShinShell(length: number): THREE.BufferGeometry {
     });
   }
   return loftArmor(rings, 28, "both");
+}
+
+/** Rear calf fairing, narrower than the front shin with room for link rods. */
+export function createCalfShell(length: number): THREE.BufferGeometry {
+  const rings: ArmorRing[] = [];
+  const steps = 10;
+  for (let i = 0; i <= steps; i += 1) {
+    const t = i / steps;
+    const calf = Math.exp(-(((t - 0.38) / 0.3) ** 2));
+    rings.push({
+      y: -t * length,
+      rx: 0.042 + calf * 0.012 - t * 0.006,
+      rzFront: 0.016,
+      rzBack: 0.038 + calf * 0.028,
+      power: 0.62,
+      lip: i === 0 || i === steps ? 0.88 : 1,
+    });
+  }
+  return loftArmor(rings, 24, "both");
 }
 
 /** White kneecap on the front of the joint. */
