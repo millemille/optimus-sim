@@ -111,33 +111,32 @@ function loftArmor(
 
 /**
  * Fitted pec that wraps into a round deltoid. Front wall stays
- * continuous (hole closed). Thickness is a U so the side is a
- * body and the back is not a wing. Outer dump is a
- * quarter-circle, not a pointed T-shelf.
+ * continuous (hole closed). Side flanges give the pec depth
+ * without a white back plate. Outer dump is a quarter-circle.
  */
 export function createPecShell(): THREE.BufferGeometry {
   const rings = [
-    { y: 0.266, rx: 0.084, zF: 0.058 },
-    { y: 0.248, rx: 0.126, zF: 0.072 },
-    { y: 0.23, rx: 0.198, zF: 0.086 },
-    { y: 0.212, rx: 0.298, zF: 0.096 },
-    { y: 0.194, rx: 0.372, zF: 0.102 },
-    { y: 0.174, rx: 0.4, zF: 0.098 },
-    { y: 0.152, rx: 0.39, zF: 0.09 },
-    { y: 0.128, rx: 0.352, zF: 0.082 },
-    { y: 0.098, rx: 0.268, zF: 0.074 },
-    { y: 0.06, rx: 0.206, zF: 0.06 },
-    { y: 0.016, rx: 0.174, zF: 0.046 },
+    { y: 0.266, rx: 0.084, zF: 0.07 },
+    { y: 0.248, rx: 0.126, zF: 0.084 },
+    { y: 0.23, rx: 0.198, zF: 0.098 },
+    { y: 0.212, rx: 0.298, zF: 0.11 },
+    { y: 0.194, rx: 0.372, zF: 0.116 },
+    { y: 0.174, rx: 0.4, zF: 0.112 },
+    { y: 0.152, rx: 0.39, zF: 0.102 },
+    { y: 0.128, rx: 0.352, zF: 0.092 },
+    { y: 0.098, rx: 0.268, zF: 0.082 },
+    { y: 0.06, rx: 0.206, zF: 0.068 },
+    { y: 0.016, rx: 0.174, zF: 0.052 },
   ];
   const segs = 40;
-  const cols = segs + 1;
+  const wrap = 5;
+  const cols = segs + 1 + wrap * 2;
   const positions: number[] = [];
   const indices: number[] = [];
 
-  const sculpt = (rx: number, y0: number, xn: number, xScale: number, z: number) => {
-    let x = rx * xn * xScale;
-    let y = y0;
+  const dumpY = (rx: number, xn: number, y: number) => {
     if (y > 0.234) {
+      const x = rx * xn;
       const u = Math.exp(-((x / 0.078) ** 2)) * ((y - 0.234) / 0.032);
       y -= u * 0.03;
     }
@@ -145,56 +144,46 @@ export function createPecShell(): THREE.BufferGeometry {
       const t = Math.min(1, (Math.abs(rx * xn) - 0.26) / 0.14);
       y -= t * t * 0.034;
     }
-    if (xScale > 0.9 && Math.abs(x) < 0.2) {
-      const pec = Math.exp(-(x * x) / 0.03) * Math.exp(-((y - 0.12) ** 2) / 0.014);
-      z += pec * 0.024;
-    }
-    return { x, y, z: xScale > 0.9 ? Math.max(0.052, z) : z };
+    return y;
   };
 
   for (const ring of rings) {
-    for (let j = 0; j <= segs; j += 1) {
-      const xn = (j / segs) * 2 - 1;
-      const z = 0.052 + (ring.zF - 0.052) * (1 - xn * xn);
-      const v = sculpt(ring.rx, ring.y, xn, 1, z);
-      positions.push(v.x, v.y, v.z);
+    for (let w = wrap; w >= 1; w -= 1) {
+      const t = w / wrap;
+      const x = -ring.rx;
+      const y = dumpY(ring.rx, -1, ring.y);
+      const z = THREE.MathUtils.lerp(0.052, 0.018, t);
+      positions.push(x * (1 - t * 0.04), y, z);
     }
-  }
-  const innerOff = rings.length * cols;
-  for (const ring of rings) {
     for (let j = 0; j <= segs; j += 1) {
       const xn = (j / segs) * 2 - 1;
-      const v = sculpt(ring.rx, ring.y, xn, 0.48 + 0.1 * (1 - xn * xn), 0.012);
-      positions.push(v.x, v.y, v.z);
+      const x = ring.rx * xn;
+      const y = dumpY(ring.rx, xn, ring.y);
+      let z = 0.052 + (ring.zF - 0.052) * (1 - xn * xn);
+      if (Math.abs(x) < 0.2) {
+        const pec = Math.exp(-(x * x) / 0.03) * Math.exp(-((y - 0.12) ** 2) / 0.014);
+        z += pec * 0.028;
+      }
+      positions.push(x, y, Math.max(0.052, z));
+    }
+    for (let w = 1; w <= wrap; w += 1) {
+      const t = w / wrap;
+      const x = ring.rx;
+      const y = dumpY(ring.rx, 1, ring.y);
+      const z = THREE.MathUtils.lerp(0.052, 0.018, t);
+      positions.push(x * (1 - t * 0.04), y, z);
     }
   }
 
   const last = rings.length - 1;
   for (let i = 0; i < last; i += 1) {
-    for (let j = 0; j < segs; j += 1) {
+    for (let j = 0; j < cols - 1; j += 1) {
       const a = i * cols + j;
       const b = a + 1;
       const c = a + cols;
       const d = c + 1;
       indices.push(a, c, b, b, c, d);
-      const ia = innerOff + a;
-      indices.push(ia, ia + 1, ia + cols, ia + 1, ia + cols + 1, ia + cols);
     }
-  }
-  for (let i = 0; i < last; i += 1) {
-    for (const j of [0, segs]) {
-      const af = i * cols + j;
-      const cf = af + cols;
-      const ai = innerOff + i * cols + j;
-      const ci = ai + cols;
-      if (j === 0) indices.push(af, ai, cf, cf, ai, ci);
-      else indices.push(af, cf, ai, cf, ci, ai);
-    }
-  }
-  for (let j = 0; j < segs; j += 1) {
-    indices.push(j, j + 1, innerOff + j, j + 1, innerOff + j + 1, innerOff + j);
-    const c = last * cols + j;
-    indices.push(c, innerOff + c, c + 1, c + 1, innerOff + c, innerOff + c + 1);
   }
 
   const geo = new THREE.BufferGeometry();
@@ -250,12 +239,12 @@ export function createMidriff(): THREE.BufferGeometry {
 /** Black mechanical pelvis. Fills the studio-gray hole between waist and thighs. */
 export function createPelvis(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.122, 0.078),
-    new THREE.Vector2(0.136, 0.042),
-    new THREE.Vector2(0.142, 0.006),
-    new THREE.Vector2(0.138, -0.03),
-    new THREE.Vector2(0.124, -0.058),
-    new THREE.Vector2(0.1, -0.082),
+    new THREE.Vector2(0.148, 0.088),
+    new THREE.Vector2(0.162, 0.048),
+    new THREE.Vector2(0.168, 0.008),
+    new THREE.Vector2(0.16, -0.034),
+    new THREE.Vector2(0.146, -0.07),
+    new THREE.Vector2(0.12, -0.108),
   ];
   const geo = new THREE.LatheGeometry(profile, 28);
   const pos = geo.attributes.position;

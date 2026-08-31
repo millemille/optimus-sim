@@ -150,11 +150,11 @@ export class Optimus {
 
   private buildPelvis(): void {
     const bowl = this.mesh(createPelvis(), this.mats.matte);
-    bowl.position.y = 0.012;
+    bowl.position.y = -0.008;
     this.hips.add(bowl);
 
-    const bridge = this.panel(0.2, 0.07, 0.08, this.mats.matte, 0.016);
-    bridge.position.set(0, 0.006, 0.02);
+    const bridge = this.panel(0.3, 0.12, 0.1, this.mats.matte, 0.02);
+    bridge.position.set(0, -0.012, 0.028);
     this.hips.add(bridge);
 
     for (const side of [-1, 1]) {
@@ -288,7 +288,7 @@ export class Optimus {
 
   private leg(side: number): THREE.Group {
     const hip = new THREE.Group();
-    hip.position.set(side * 0.12, -0.028, 0);
+    hip.position.set(side * 0.12, 0.006, 0);
     this.hips.add(hip);
 
     const ball = this.mesh(new THREE.SphereGeometry(0.028, 12, 10), this.mats.joint);
