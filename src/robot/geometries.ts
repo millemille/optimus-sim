@@ -110,24 +110,24 @@ function loftArmor(
 }
 
 /**
- * One pec-to-arm wrap. The pec body stays chest-width. Width
- * only reaches ~0.40 in a short shoulder band so the deltoid
- * sits on the arm, fills the old vest/ball gap, and does not
- * hang as a shelf. Hem is a pec cut. No sphere lobes.
+ * One pec-to-arm wrap. Collar stays narrow. Width holds ~0.40
+ * from the deltoid down through the armpit so the front camera
+ * cannot see a hole between pec and sleeve. Hem is a pec cut
+ * in the center only. No separate caps.
  */
 export function createPecShell(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
     { y: 0.292, rx: 0.104, rzFront: 0.05, rzBack: 0.028, power: 0.5 },
-    { y: 0.258, rx: 0.166, rzFront: 0.07, rzBack: 0.03, power: 0.48 },
-    { y: 0.232, rx: 0.242, rzFront: 0.084, rzBack: 0.03, power: 0.46 },
-    { y: 0.214, rx: 0.318, rzFront: 0.088, rzBack: 0.03, power: 0.44 },
-    { y: 0.198, rx: 0.4, rzFront: 0.082, rzBack: 0.028, power: 0.42 },
-    { y: 0.178, rx: 0.356, rzFront: 0.09, rzBack: 0.026, power: 0.44 },
-    { y: 0.152, rx: 0.248, rzFront: 0.116, rzBack: 0.028, power: 0.46, ridge: 0.01 },
-    { y: 0.11, rx: 0.228, rzFront: 0.12, rzBack: 0.026, power: 0.46, ridge: 0.012 },
-    { y: 0.068, rx: 0.206, rzFront: 0.078, rzBack: 0.024, power: 0.48 },
-    { y: 0.028, rx: 0.182, rzFront: 0.052, rzBack: 0.022, power: 0.5 },
-    { y: -0.006, rx: 0.164, rzFront: 0.038, rzBack: 0.02, power: 0.5, lip: 0.9 },
+    { y: 0.26, rx: 0.168, rzFront: 0.068, rzBack: 0.03, power: 0.48 },
+    { y: 0.234, rx: 0.268, rzFront: 0.08, rzBack: 0.03, power: 0.46 },
+    { y: 0.214, rx: 0.348, rzFront: 0.086, rzBack: 0.03, power: 0.44 },
+    { y: 0.196, rx: 0.398, rzFront: 0.084, rzBack: 0.028, power: 0.42 },
+    { y: 0.172, rx: 0.388, rzFront: 0.09, rzBack: 0.026, power: 0.44 },
+    { y: 0.146, rx: 0.372, rzFront: 0.1, rzBack: 0.026, power: 0.44, ridge: 0.006 },
+    { y: 0.118, rx: 0.338, rzFront: 0.108, rzBack: 0.024, power: 0.46, ridge: 0.008 },
+    { y: 0.086, rx: 0.246, rzFront: 0.1, rzBack: 0.024, power: 0.48, ridge: 0.01 },
+    { y: 0.048, rx: 0.198, rzFront: 0.07, rzBack: 0.022, power: 0.5 },
+    { y: 0.008, rx: 0.172, rzFront: 0.046, rzBack: 0.02, power: 0.5, lip: 0.9 },
   ];
   const geo = loftArmor(rings, 48, "none");
   const pos = geo.attributes.position;
@@ -136,21 +136,24 @@ export function createPecShell(): THREE.BufferGeometry {
     let y = pos.getY(i);
     let z = pos.getZ(i);
 
-    if (y > 0.228) {
-      const u = Math.exp(-((x / 0.09) ** 2)) * ((y - 0.228) / 0.064);
-      y -= u * 0.04;
+    if (y > 0.23) {
+      const u = Math.exp(-((x / 0.09) ** 2)) * ((y - 0.23) / 0.062);
+      y -= u * 0.038;
     }
-    if (Math.abs(x) > 0.26 && y > 0.1) {
-      const t = Math.min(1, (Math.abs(x) - 0.26) / 0.14);
-      y -= t * 0.05;
+    if (Math.abs(x) > 0.36 && y > 0.12) {
+      const t = Math.min(1, (Math.abs(x) - 0.36) / 0.04);
+      y -= t * 0.022;
     }
-    if (y < 0.05) {
-      const t = Math.min(1, Math.abs(x) / 0.18);
-      y += t * t * 0.044;
+    if (y < 0.045 && Math.abs(x) < 0.2) {
+      const t = Math.min(1, Math.abs(x) / 0.2);
+      y += t * t * 0.03;
     }
-    if (z > 0) {
-      const pec = Math.exp(-(x * x) / 0.028) * Math.exp(-((y - 0.128) ** 2) / 0.01);
-      z += pec * 0.016;
+    if (Math.abs(x) > 0.22 && y > 0.1 && y < 0.22 && z > -0.012) {
+      z = Math.max(z, 0.05);
+    }
+    if (z > 0 && Math.abs(x) < 0.2) {
+      const pec = Math.exp(-(x * x) / 0.026) * Math.exp(-((y - 0.12) ** 2) / 0.01);
+      z += pec * 0.014;
     }
     pos.setY(i, y);
     pos.setZ(i, z);
@@ -202,18 +205,23 @@ export function createMidriff(): THREE.BufferGeometry {
   return geo;
 }
 
-/** White upper-arm dump under the vest. Same front rx as the limb, not a barrel. */
+/** White sleeve that grows up into the pec wrap. Not a pauldron ball. */
 export function createDeltoid(side: number): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0.018, rx: 0.054, rzFront: 0.06, rzBack: 0.026, power: 0.5 },
-    { y: -0.055, rx: 0.05, rzFront: 0.054, rzBack: 0.022, power: 0.5 },
-    { y: -0.13, rx: 0.046, rzFront: 0.048, rzBack: 0.02, power: 0.5, lip: 0.9 },
+    { y: 0.082, rx: 0.06, rzFront: 0.068, rzBack: 0.028, power: 0.48 },
+    { y: 0.028, rx: 0.056, rzFront: 0.062, rzBack: 0.026, power: 0.5 },
+    { y: -0.05, rx: 0.05, rzFront: 0.054, rzBack: 0.022, power: 0.5 },
+    { y: -0.128, rx: 0.046, rzFront: 0.048, rzBack: 0.02, power: 0.5, lip: 0.9 },
   ];
   const geo = loftArmor(rings, 36);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
-    if (x * side < 0) pos.setX(i, x * 0.4);
+    const y = pos.getY(i);
+    if (x * side < 0) {
+      const towardPec = y > 0 ? 0.55 + (y / 0.082) * 0.7 : 0.4;
+      pos.setX(i, x * towardPec);
+    }
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -255,7 +263,7 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
     rings.push({
       y: -t * length,
       rx: 0.062 + quad * 0.014 - t * 0.008,
-      rzFront: 0.032 + quad * 0.14 - t * 0.006,
+      rzFront: 0.016 + quad * 0.128 - t * 0.006,
       rzBack: 0.014 + quad * 0.006 - t * 0.002,
       ridge: 0.005 * quad,
       lip: i === 0 || i === steps ? 0.9 : 1,
@@ -305,10 +313,10 @@ export function createKneeCap(): THREE.BufferGeometry {
 /** White finger plate with volume, hanging down. Not a sphere cluster. */
 export function createFingerPhalanx(length: number, width: number): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0, rx: width * 0.7, rzFront: width * 0.84, rzBack: width * 0.32, power: 0.5, lip: 0.9 },
-    { y: -length * 0.48, rx: width, rzFront: width * 1.08, rzBack: width * 0.36, power: 0.48 },
-    { y: -length, rx: width * 0.66, rzFront: width * 0.74, rzBack: width * 0.28, power: 0.5, lip: 0.86 },
+    { y: 0, rx: width * 0.78, rzFront: width * 1.15, rzBack: width * 0.42, power: 0.48, lip: 0.9 },
+    { y: -length * 0.48, rx: width * 1.08, rzFront: width * 1.45, rzBack: width * 0.48, power: 0.46 },
+    { y: -length, rx: width * 0.72, rzFront: width * 1.05, rzBack: width * 0.36, power: 0.48, lip: 0.86 },
   ];
-  return loftArmor(rings, 18, "both");
+  return loftArmor(rings, 20, "both");
 }
 

@@ -208,7 +208,7 @@ export class Optimus {
     shoulder.add(upper);
 
     const sleeve = this.mesh(createDeltoid(side), this.mats.white);
-    sleeve.position.set(0, -0.012, 0.006);
+    sleeve.position.set(0, 0.01, 0.006);
     upper.add(sleeve);
 
     const housing = this.mesh(createLimbShell(0.2, 0.048, 0.04, 0.046), this.mats.white);
@@ -258,11 +258,11 @@ export class Optimus {
     dorsal.position.set(0, -0.028, 0.018);
     g.add(dorsal);
 
-    const xs = [-0.028, -0.01, 0.008, 0.026];
-    const prox = [0.03, 0.034, 0.032, 0.028];
-    const dist = [0.024, 0.028, 0.026, 0.022];
-    const widths = [0.0125, 0.0135, 0.013, 0.0118];
-    const fans = [-0.07, -0.018, 0.028, 0.09];
+    const xs = [-0.03, -0.01, 0.01, 0.028];
+    const prox = [0.034, 0.038, 0.036, 0.03];
+    const dist = [0.026, 0.03, 0.028, 0.024];
+    const widths = [0.014, 0.0152, 0.0146, 0.0132];
+    const fans = [-0.06, -0.016, 0.024, 0.08];
     for (let i = 0; i < 4; i += 1) {
       const knuckle = this.mesh(new THREE.SphereGeometry(0.0062, 8, 6), this.mats.joint);
       knuckle.position.set(xs[i], -0.048, 0.008);
@@ -311,7 +311,7 @@ export class Optimus {
     hip.add(thigh);
 
     const tHousing = this.mesh(createThighShell(0.34, side), this.mats.white);
-    tHousing.position.set(0, -0.05, 0.026);
+    tHousing.position.set(0, -0.06, 0.02);
     thigh.add(tHousing);
 
     const knee = new THREE.Group();
