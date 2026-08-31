@@ -156,25 +156,18 @@ export class Optimus {
     this.hips.add(bowl);
 
     const crotch = this.mesh(createCrotchGuard(), this.mats.matte);
-    crotch.position.set(0, -0.12, 0.055);
+    crotch.position.set(0, -0.1, 0.04);
     this.hips.add(crotch);
-
-    const bridge = this.panel(0.36, 0.34, 0.18, this.mats.matte, 0.032);
-    bridge.position.set(0, -0.04, 0.042);
-    this.hips.add(bridge);
 
     for (const side of [-1, 1]) {
       const motor = this.mesh(new THREE.CylinderGeometry(0.024, 0.03, 0.09, 12), this.mats.actuator);
       motor.rotation.z = side * 0.72;
       motor.position.set(side * 0.108, 0.01, 0.016);
       this.hips.add(motor);
-      const cup = this.mesh(new THREE.SphereGeometry(0.056, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.8), this.mats.matte);
+      const cup = this.mesh(new THREE.SphereGeometry(0.05, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.75), this.mats.matte);
       cup.rotation.x = Math.PI;
-      cup.position.set(side * 0.124, -0.018, 0.01);
+      cup.position.set(side * 0.122, -0.02, 0.01);
       this.hips.add(cup);
-      const web = this.panel(0.12, 0.3, 0.12, this.mats.matte, 0.022);
-      web.position.set(side * 0.1, -0.12, 0.028);
-      this.hips.add(web);
     }
   }
 
@@ -272,27 +265,27 @@ export class Optimus {
     const g = new THREE.Group();
 
     const palm = this.mesh(createPalm(), this.mats.matte);
-    palm.position.set(0, -0.03, 0.006);
+    palm.position.set(0, -0.028, 0.004);
     g.add(palm);
-    const dorsal = this.panel(0.078, 0.048, 0.022, this.mats.white, 0.018);
-    dorsal.position.set(0, -0.036, 0.028);
+    const dorsal = this.panel(0.062, 0.036, 0.014, this.mats.white, 0.012);
+    dorsal.position.set(0, -0.032, 0.026);
     g.add(dorsal);
 
-    const xs = [-0.028, -0.01, 0.008, 0.026];
-    const lens = [0.046, 0.052, 0.05, 0.042];
-    const widths = [0.03, 0.032, 0.031, 0.028];
-    const fans = [-0.14, -0.04, 0.05, 0.16];
+    const xs = [-0.03, -0.011, 0.009, 0.028];
+    const lens = [0.064, 0.074, 0.07, 0.056];
+    const widths = [0.024, 0.026, 0.025, 0.022];
+    const fans = [-0.2, -0.055, 0.07, 0.22];
     for (let i = 0; i < 4; i += 1) {
       const p = this.mesh(createFinger(lens[i], widths[i]), this.mats.white);
-      p.position.set(xs[i], -0.046, 0.016);
+      p.position.set(xs[i], -0.04, 0.014);
       p.rotation.z = fans[i];
-      p.rotation.x = 0.42;
+      p.rotation.x = 0.26;
       g.add(p);
     }
 
-    const thumb = this.mesh(createFinger(0.04, 0.03), this.mats.white);
-    thumb.position.set(side * 0.034, -0.016, 0.02);
-    thumb.rotation.set(0.75, side * 0.32, side * 0.95);
+    const thumb = this.mesh(createFinger(0.052, 0.026), this.mats.white);
+    thumb.position.set(side * 0.034, -0.014, 0.018);
+    thumb.rotation.set(0.7, side * 0.28, side * 1.05);
     g.add(thumb);
     return g;
   }
@@ -314,7 +307,7 @@ export class Optimus {
     hip.add(thigh);
 
     const tHousing = this.mesh(createThighShell(0.34, side), this.mats.white);
-    tHousing.position.set(0, -0.04, 0.022);
+    tHousing.position.set(0, -0.028, 0.024);
     thigh.add(tHousing);
 
     const knee = new THREE.Group();
