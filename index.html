@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Optimus Sim</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect fill='%230b0b0c' width='64' height='64'/><rect fill='%23f2f2f0' x='18' y='10' width='28' height='44' rx='6'/><rect fill='%23111114' x='22' y='14' width='20' height='12' rx='5'/></svg>" />
+    <script>
+      if (new URLSearchParams(location.search).has("studio")) {
+        document.documentElement.classList.add("studio");
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="view"></canvas>
+
+      <div id="hud" hidden>
+        <aside class="panel mission">
+          <p class="kicker">Mission</p>
+          <p id="mission-text">Pick up the orange crate and set it on the glowing yellow floor pad.</p>
+          <p id="mission-status" class="status">Orange crate is on a workbench.</p>
+        </aside>
+
+        <p id="prompt" class="prompt" hidden></p>
+
+        <footer class="chrome">
+          <p class="controls">
+            WASD walk · Shift faster · mouse or arrows look · E or click use · Esc pause
+          </p>
+          <p class="disclaimer">Fan-made simulator. Not a Tesla product.</p>
+        </footer>
+      </div>
+
+      <div id="overlay" class="overlay">
+        <div class="card">
+          <p class="kicker">Fan-made · three.js</p>
+          <h1>Optimus Sim</h1>
+          <p class="lead">
+            Walk a white-panel humanoid through a small workshop. Pick up the orange
+            crate and put it on the glowing yellow floor pad.
+          </p>
+          <button id="enter" type="button">Click to enter workshop</button>
+          <p class="hint">Pointer lock for mouse look. Arrow keys also turn the camera. Esc releases the lock.</p>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
