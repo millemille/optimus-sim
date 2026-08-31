@@ -110,23 +110,24 @@ function loftArmor(
 }
 
 /**
- * One pec-to-arm wrap. Width grows smoothly from the collar
- * through the pecs and into the deltoid (half ~0.40) so the
- * front is one white mass, not a vest plus two balls. A light
- * rim dump puts that outer mass onto the arm. Hem is a pec cut.
+ * One pec-to-arm wrap. The pec body stays chest-width. Width
+ * only reaches ~0.40 in a short shoulder band so the deltoid
+ * sits on the arm, fills the old vest/ball gap, and does not
+ * hang as a shelf. Hem is a pec cut. No sphere lobes.
  */
 export function createPecShell(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
     { y: 0.292, rx: 0.104, rzFront: 0.05, rzBack: 0.028, power: 0.5 },
-    { y: 0.262, rx: 0.168, rzFront: 0.068, rzBack: 0.03, power: 0.48 },
-    { y: 0.236, rx: 0.248, rzFront: 0.082, rzBack: 0.03, power: 0.46 },
-    { y: 0.212, rx: 0.332, rzFront: 0.09, rzBack: 0.03, power: 0.44 },
-    { y: 0.188, rx: 0.396, rzFront: 0.086, rzBack: 0.028, power: 0.42 },
-    { y: 0.158, rx: 0.348, rzFront: 0.108, rzBack: 0.028, power: 0.44, ridge: 0.008 },
-    { y: 0.122, rx: 0.268, rzFront: 0.118, rzBack: 0.026, power: 0.46, ridge: 0.01 },
-    { y: 0.082, rx: 0.222, rzFront: 0.086, rzBack: 0.024, power: 0.48 },
-    { y: 0.044, rx: 0.192, rzFront: 0.056, rzBack: 0.022, power: 0.5 },
-    { y: 0.008, rx: 0.166, rzFront: 0.04, rzBack: 0.02, power: 0.5, lip: 0.9 },
+    { y: 0.258, rx: 0.166, rzFront: 0.07, rzBack: 0.03, power: 0.48 },
+    { y: 0.232, rx: 0.242, rzFront: 0.084, rzBack: 0.03, power: 0.46 },
+    { y: 0.214, rx: 0.318, rzFront: 0.088, rzBack: 0.03, power: 0.44 },
+    { y: 0.198, rx: 0.4, rzFront: 0.082, rzBack: 0.028, power: 0.42 },
+    { y: 0.178, rx: 0.356, rzFront: 0.09, rzBack: 0.026, power: 0.44 },
+    { y: 0.152, rx: 0.248, rzFront: 0.116, rzBack: 0.028, power: 0.46, ridge: 0.01 },
+    { y: 0.11, rx: 0.228, rzFront: 0.12, rzBack: 0.026, power: 0.46, ridge: 0.012 },
+    { y: 0.068, rx: 0.206, rzFront: 0.078, rzBack: 0.024, power: 0.48 },
+    { y: 0.028, rx: 0.182, rzFront: 0.052, rzBack: 0.022, power: 0.5 },
+    { y: -0.006, rx: 0.164, rzFront: 0.038, rzBack: 0.02, power: 0.5, lip: 0.9 },
   ];
   const geo = loftArmor(rings, 48, "none");
   const pos = geo.attributes.position;
@@ -139,17 +140,17 @@ export function createPecShell(): THREE.BufferGeometry {
       const u = Math.exp(-((x / 0.09) ** 2)) * ((y - 0.228) / 0.064);
       y -= u * 0.04;
     }
-    if (Math.abs(x) > 0.3 && y > 0.14) {
-      const t = Math.min(1, (Math.abs(x) - 0.3) / 0.1);
-      y -= t * t * 0.028;
+    if (Math.abs(x) > 0.26 && y > 0.1) {
+      const t = Math.min(1, (Math.abs(x) - 0.26) / 0.14);
+      y -= t * 0.05;
     }
-    if (y < 0.055) {
+    if (y < 0.05) {
       const t = Math.min(1, Math.abs(x) / 0.18);
-      y += t * t * 0.046;
+      y += t * t * 0.044;
     }
     if (z > 0) {
-      const pec = Math.exp(-(x * x) / 0.032) * Math.exp(-((y - 0.132) ** 2) / 0.012);
-      z += pec * 0.015;
+      const pec = Math.exp(-(x * x) / 0.028) * Math.exp(-((y - 0.128) ** 2) / 0.01);
+      z += pec * 0.016;
     }
     pos.setY(i, y);
     pos.setZ(i, z);
