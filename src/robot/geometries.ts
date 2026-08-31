@@ -109,7 +109,12 @@ function loftArmor(
   return geo;
 }
 
-function stitchGrid(positions: number[], rows: number, cols: number): THREE.BufferGeometry {
+function stitchGrid(
+  positions: number[],
+  rows: number,
+  cols: number,
+  bothSides = false,
+): THREE.BufferGeometry {
   const indices: number[] = [];
   for (let i = 0; i < rows; i += 1) {
     for (let j = 0; j < cols - 1; j += 1) {
@@ -118,6 +123,7 @@ function stitchGrid(positions: number[], rows: number, cols: number): THREE.Buff
       const c = a + cols;
       const d = c + 1;
       indices.push(a, c, b, b, c, d);
+      if (bothSides) indices.push(a, b, c, b, d, c);
     }
   }
   const geo = new THREE.BufferGeometry();
@@ -158,12 +164,12 @@ function mergeGeos(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
  */
 function buildPecPlate(): THREE.BufferGeometry {
   const rings = [
-    { y: 0.262, rx: 0.092, zF: 0.088 },
-    { y: 0.246, rx: 0.128, zF: 0.108 },
-    { y: 0.226, rx: 0.168, zF: 0.122 },
-    { y: 0.2, rx: 0.208, zF: 0.132 },
-    { y: 0.168, rx: 0.242, zF: 0.138 },
-    { y: 0.132, rx: 0.258, zF: 0.136 },
+    { y: 0.262, rx: 0.088, zF: 0.094 },
+    { y: 0.244, rx: 0.118, zF: 0.116 },
+    { y: 0.222, rx: 0.158, zF: 0.13 },
+    { y: 0.196, rx: 0.198, zF: 0.142 },
+    { y: 0.164, rx: 0.236, zF: 0.148 },
+    { y: 0.128, rx: 0.252, zF: 0.144 },
     { y: 0.096, rx: 0.236, zF: 0.118 },
     { y: 0.06, rx: 0.2, zF: 0.092 },
     { y: 0.028, rx: 0.178, zF: 0.072 },
@@ -186,7 +192,7 @@ function buildPecPlate(): THREE.BufferGeometry {
     for (let w = wrap; w >= 1; w -= 1) {
       const t = w / wrap;
       const y = collarU(-ring.rx, ring.y);
-      positions.push(-ring.rx * (1 - t * 0.05), y, THREE.MathUtils.lerp(0.05, 0.012, t));
+      positions.push(-ring.rx * (1 - t * 0.06), y, THREE.MathUtils.lerp(0.05, 0.002, t));
     }
     for (let j = 0; j <= segs; j += 1) {
       const xn = (j / segs) * 2 - 1;
@@ -200,7 +206,7 @@ function buildPecPlate(): THREE.BufferGeometry {
     for (let w = 1; w <= wrap; w += 1) {
       const t = w / wrap;
       const y = collarU(ring.rx, ring.y);
-      positions.push(ring.rx * (1 - t * 0.05), y, THREE.MathUtils.lerp(0.05, 0.012, t));
+      positions.push(ring.rx * (1 - t * 0.06), y, THREE.MathUtils.lerp(0.05, 0.002, t));
     }
   }
 
@@ -209,33 +215,34 @@ function buildPecPlate(): THREE.BufferGeometry {
 
 /** Front-only deltoid mass. Round in the camera plane, scoops off before the back. */
 function buildDeltoidWrap(side: number): THREE.BufferGeometry {
-  const rings = 12;
-  const segs = 20;
+  const rings = 14;
+  const segs = 22;
   const positions: number[] = [];
-  const cx = side * 0.304;
-  const cz = 0.02;
+  const cx = side * 0.3;
+  const cy = 0.188;
+  const cz = 0.022;
+  const rx = 0.096;
+  const ry = 0.082;
+  const rz = 0.07;
 
   for (let i = 0; i <= rings; i += 1) {
-    const v = i / rings;
-    const y = 0.274 - v * 0.2;
-    const fat = Math.sin(v * Math.PI);
-    const r = 0.05 + fat * 0.048;
+    const theta = 0.28 + (i / rings) * 2.35;
     for (let j = 0; j <= segs; j += 1) {
-      const a = -0.22 + (j / segs) * 2.12;
-      const x = cx + side * r * Math.cos(a);
-      const z = cz + r * Math.sin(a) * 0.78;
-      const yy = y + r * 0.22 * Math.cos(a * 0.9);
-      positions.push(x, yy, Math.max(0.014, z));
+      const phi = -1.05 + (j / segs) * 2.1;
+      const x = cx + side * rx * Math.sin(theta) * Math.sin(phi);
+      const y = cy + ry * Math.cos(theta);
+      const z = cz + rz * Math.sin(theta) * Math.cos(phi);
+      positions.push(x, y, Math.max(0.016, z));
     }
   }
 
-  const geo = stitchGrid(positions, rings, segs + 1);
+  const geo = stitchGrid(positions, rings, segs + 1, true);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
-    if (x * side < 0.22) {
-      pos.setX(i, THREE.MathUtils.lerp(x, side * 0.236, 0.45));
-      pos.setZ(i, Math.max(pos.getZ(i), 0.05));
+    if (x * side < 0.228) {
+      pos.setX(i, THREE.MathUtils.lerp(x, side * 0.24, 0.55));
+      pos.setZ(i, Math.max(pos.getZ(i), 0.052));
     }
   }
   pos.needsUpdate = true;
@@ -317,14 +324,14 @@ export function createPelvis(): THREE.BufferGeometry {
  * Wide and tall on purpose: the front camera must not see studio gray.
  */
 export function createCrotchGuard(): THREE.BufferGeometry {
-  const geo = new THREE.BoxGeometry(0.24, 0.52, 0.18);
+  const geo = new THREE.BoxGeometry(0.34, 0.58, 0.2);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const y = pos.getY(i);
     const x = pos.getX(i);
-    const taper = 1 - Math.max(0, -y - 0.06) * 0.7;
+    const taper = 1 - Math.max(0, -y - 0.1) * 0.45;
     pos.setX(i, x * taper);
-    if (pos.getZ(i) < 0) pos.setZ(i, pos.getZ(i) * 0.4);
+    if (pos.getZ(i) < 0) pos.setZ(i, pos.getZ(i) * 0.35);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -388,10 +395,10 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
     rings.push({
       y: -t * length,
       rx: 0.054 + quad * 0.02 - t * 0.006,
-      rzFront: 0.062 + quad * 0.088 - t * 0.008,
+      rzFront: (t < 0.12 ? 0.03 : 0.07) + quad * 0.09 - t * 0.006,
       rzBack: 0.012 + quad * 0.006,
       ridge: 0.005 * quad,
-      lip: i === 0 ? 0.28 : i === steps ? 0.88 : 1,
+      lip: i === 0 ? 0.2 : i === steps ? 0.88 : 1,
       power: 0.42,
     });
   }
