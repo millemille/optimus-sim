@@ -190,21 +190,21 @@ export class Optimus {
     this.chest.add(waist);
 
     const buckle = this.mesh(createWaistBuckle(), this.mats.metal);
-    buckle.position.set(0, -0.03, 0.078);
+    buckle.position.set(0, -0.036, 0.07);
     this.chest.add(buckle);
   }
 
   private buildNeck(): void {
-    const column = this.mesh(new THREE.CylinderGeometry(0.044, 0.052, 0.16, 20), this.mats.matte);
+    const column = this.mesh(new THREE.CylinderGeometry(0.048, 0.056, 0.12, 20), this.mats.matte);
     column.name = "neckColumn";
-    column.position.set(0, 0.372, 0.01);
+    column.position.set(0, 0.36, 0.01);
     this.chest.add(column);
   }
 
   private buildHead(): void {
     const head = new THREE.Group();
     head.name = "head";
-    head.position.set(0, 0.528, 0.012);
+    head.position.set(0, 0.508, 0.012);
     this.chest.add(head);
 
     const skull = this.mesh(createVisorSkull(), this.mats.skull);
@@ -214,7 +214,7 @@ export class Optimus {
 
   private arm(side: number): THREE.Group {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.282, 0.255, 0.012);
+    shoulder.position.set(side * 0.268, 0.252, 0.012);
     this.chest.add(shoulder);
 
     const cap = this.mesh(createShoulderCap(side), this.mats.white);
@@ -233,7 +233,7 @@ export class Optimus {
     sleeve.position.set(0, -0.008, 0.006);
     upper.add(sleeve);
 
-    const housing = this.mesh(createLimbShell(0.2, 0.05, 0.042, 0.05), this.mats.white);
+    const housing = this.mesh(createLimbShell(0.2, 0.054, 0.044, 0.052), this.mats.white);
     housing.position.y = -0.055;
     upper.add(housing);
 
@@ -280,21 +280,21 @@ export class Optimus {
     dorsal.position.set(0, -0.032, 0.026);
     g.add(dorsal);
 
-    const xs = [-0.03, -0.011, 0.009, 0.028];
-    const lens = [0.064, 0.074, 0.07, 0.056];
-    const widths = [0.024, 0.026, 0.025, 0.022];
-    const fans = [-0.2, -0.055, 0.07, 0.22];
+    const xs = [-0.032, -0.012, 0.01, 0.03];
+    const lens = [0.082, 0.094, 0.09, 0.072];
+    const widths = [0.022, 0.024, 0.023, 0.02];
+    const fans = [-0.16, -0.04, 0.05, 0.18];
     for (let i = 0; i < 4; i += 1) {
       const p = this.mesh(createFinger(lens[i], widths[i]), this.mats.white);
-      p.position.set(xs[i], -0.04, 0.014);
+      p.position.set(xs[i], -0.048, 0.012);
       p.rotation.z = fans[i];
-      p.rotation.x = 0.26;
+      p.rotation.x = 0.12;
       g.add(p);
     }
 
-    const thumb = this.mesh(createFinger(0.052, 0.026), this.mats.white);
-    thumb.position.set(side * 0.034, -0.014, 0.018);
-    thumb.rotation.set(0.7, side * 0.28, side * 1.05);
+    const thumb = this.mesh(createFinger(0.064, 0.024), this.mats.white);
+    thumb.position.set(side * 0.036, -0.01, 0.02);
+    thumb.rotation.set(0.55, side * 0.22, side * 0.95);
     g.add(thumb);
     return g;
   }

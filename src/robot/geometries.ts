@@ -6,26 +6,34 @@ import * as THREE from "three";
  */
 export function createVisorSkull(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.0, -0.092),
-    new THREE.Vector2(0.026, -0.09),
+    new THREE.Vector2(0.0, -0.094),
+    new THREE.Vector2(0.028, -0.092),
     new THREE.Vector2(0.054, -0.078),
-    new THREE.Vector2(0.076, -0.058),
-    new THREE.Vector2(0.092, -0.032),
-    new THREE.Vector2(0.1, -0.004),
-    new THREE.Vector2(0.104, 0.026),
-    new THREE.Vector2(0.1, 0.052),
-    new THREE.Vector2(0.088, 0.074),
-    new THREE.Vector2(0.066, 0.09),
-    new THREE.Vector2(0.034, 0.102),
-    new THREE.Vector2(0.0, 0.108),
+    new THREE.Vector2(0.076, -0.054),
+    new THREE.Vector2(0.09, -0.026),
+    new THREE.Vector2(0.096, 0.004),
+    new THREE.Vector2(0.098, 0.034),
+    new THREE.Vector2(0.092, 0.06),
+    new THREE.Vector2(0.078, 0.082),
+    new THREE.Vector2(0.056, 0.098),
+    new THREE.Vector2(0.028, 0.11),
+    new THREE.Vector2(0.0, 0.116),
   ];
   const geo = new THREE.LatheGeometry(profile, 64);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
+    const y = pos.getY(i);
     const z = pos.getZ(i);
-    pos.setX(i, x * 1.12);
-    pos.setZ(i, z > 0 ? z * 0.82 : z * 0.9);
+    // Helmet visor: wider than tall, real depth, flattened face — not a disk or a bulb.
+    pos.setX(i, x * 1.1);
+    if (z > 0) {
+      const face = Math.min(1, z / 0.1);
+      pos.setZ(i, z * (0.8 - 0.12 * face * face));
+    } else {
+      pos.setZ(i, z * 0.9);
+    }
+    if (y < -0.02) pos.setY(i, y * 0.94);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -116,12 +124,12 @@ function loftArmor(
 export function createPecShell(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
     { y: 0.305, rx: 0.086, rzFront: 0.05, rzBack: 0.03, power: 0.72, lip: 0.94 },
-    { y: 0.268, rx: 0.152, rzFront: 0.07, rzBack: 0.036, power: 0.6 },
-    { y: 0.22, rx: 0.198, rzFront: 0.092, rzBack: 0.042, power: 0.5 },
-    { y: 0.155, rx: 0.204, rzFront: 0.11, rzBack: 0.044, power: 0.46 },
-    { y: 0.09, rx: 0.186, rzFront: 0.094, rzBack: 0.038, power: 0.5 },
-    { y: 0.03, rx: 0.152, rzFront: 0.072, rzBack: 0.032, power: 0.55 },
-    { y: -0.02, rx: 0.128, rzFront: 0.056, rzBack: 0.026, power: 0.6, lip: 0.94 },
+    { y: 0.268, rx: 0.176, rzFront: 0.072, rzBack: 0.036, power: 0.6 },
+    { y: 0.22, rx: 0.216, rzFront: 0.094, rzBack: 0.042, power: 0.5 },
+    { y: 0.155, rx: 0.212, rzFront: 0.112, rzBack: 0.044, power: 0.46 },
+    { y: 0.08, rx: 0.188, rzFront: 0.096, rzBack: 0.038, power: 0.5 },
+    { y: 0.02, rx: 0.158, rzFront: 0.076, rzBack: 0.032, power: 0.55 },
+    { y: -0.04, rx: 0.132, rzFront: 0.058, rzBack: 0.026, power: 0.6, lip: 0.94 },
   ];
   const geo = loftArmor(rings, 48);
   const pos = geo.attributes.position;
@@ -172,11 +180,10 @@ export function createThorax(): THREE.BufferGeometry {
 /** Short black waist belt. Cinches. Does not become a fridge torso. */
 export function createMidriff(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.126, 0.055),
-    new THREE.Vector2(0.118, 0.018),
-    new THREE.Vector2(0.112, -0.02),
-    new THREE.Vector2(0.118, -0.058),
-    new THREE.Vector2(0.128, -0.09),
+    new THREE.Vector2(0.122, 0.028),
+    new THREE.Vector2(0.114, 0.004),
+    new THREE.Vector2(0.11, -0.022),
+    new THREE.Vector2(0.118, -0.048),
   ];
   const geo = new THREE.LatheGeometry(profile, 28);
   const pos = geo.attributes.position;
@@ -238,8 +245,8 @@ export function createCrotchGuard(): THREE.BufferGeometry {
 
 /** Rounded white shoulder cap. Sits on the joint, does not wrap the pec. */
 export function createShoulderCap(side: number): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(0.07, 22, 16, 0, Math.PI * 2, 0, Math.PI * 0.78);
-  geo.scale(1.18, 0.82, 1.08);
+  const geo = new THREE.SphereGeometry(0.062, 22, 16, 0, Math.PI * 2, 0, Math.PI * 0.78);
+  geo.scale(1.22, 0.78, 1.04);
   geo.rotateZ(side * -0.35);
   geo.translate(side * 0.012, 0.008, 0.006);
   geo.computeVertexNormals();
@@ -298,8 +305,8 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
     const quad = Math.exp(-(((t - 0.38) / 0.28) ** 2));
     rings.push({
       y: -t * length,
-      rx: 0.074 + quad * 0.02 - t * 0.01,
-      rzFront: 0.078 + quad * 0.042 - t * 0.008,
+      rx: 0.068 + quad * 0.016 - t * 0.01,
+      rzFront: 0.07 + quad * 0.03 - t * 0.008,
       rzBack: 0.02 + quad * 0.006,
       ridge: 0.004 * quad,
       lip: i === 0 ? 0.86 : i === steps ? 0.88 : 1,
@@ -349,16 +356,16 @@ export function createKneeCap(): THREE.BufferGeometry {
 /** Black showroom boot. Flat sole, rounded toe. */
 export function createBoot(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0.018, rx: 0.038, rzFront: 0.05, rzBack: 0.042, power: 0.7, lip: 0.9 },
-    { y: -0.01, rx: 0.042, rzFront: 0.078, rzBack: 0.05, power: 0.62 },
-    { y: -0.032, rx: 0.044, rzFront: 0.1, rzBack: 0.052, power: 0.58 },
-    { y: -0.05, rx: 0.04, rzFront: 0.088, rzBack: 0.046, power: 0.64, lip: 0.92 },
+    { y: 0.02, rx: 0.036, rzFront: 0.048, rzBack: 0.04, power: 0.7, lip: 0.9 },
+    { y: -0.008, rx: 0.042, rzFront: 0.086, rzBack: 0.05, power: 0.6 },
+    { y: -0.03, rx: 0.046, rzFront: 0.118, rzBack: 0.054, power: 0.56 },
+    { y: -0.048, rx: 0.04, rzFront: 0.102, rzBack: 0.046, power: 0.64, lip: 0.92 },
   ];
-  const geo = loftArmor(rings, 22, "both");
+  const geo = loftArmor(rings, 24, "both");
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const z = pos.getZ(i);
-    if (z > 0) pos.setZ(i, z * 1.15);
+    if (z > 0) pos.setZ(i, z * 1.22);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
