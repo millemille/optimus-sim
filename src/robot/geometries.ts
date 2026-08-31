@@ -159,9 +159,9 @@ export function createPecShell(): THREE.BufferGeometry {
     const t = (ax - 0.56) / 0.44;
     const ang = THREE.MathUtils.lerp(Math.PI * 0.5, 0.1, t);
     return {
-      x: side * (0.24 + 0.168 * Math.cos(ang)),
-      y: 0.146 + 0.116 * Math.sin(ang),
-      z: 0.05 + 0.042 * Math.sin(ang),
+      x: side * (0.24 + 0.162 * Math.cos(ang)),
+      y: 0.138 + 0.128 * Math.sin(ang),
+      z: 0.05 + 0.044 * Math.sin(ang),
     };
   };
 
@@ -232,13 +232,13 @@ export function createThorax(): THREE.BufferGeometry {
 /** Black waist that cinches, then opens into the hips. Not a fridge. */
 export function createMidriff(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.184, 0.1),
-    new THREE.Vector2(0.158, 0.042),
-    new THREE.Vector2(0.136, -0.01),
-    new THREE.Vector2(0.128, -0.06),
-    new THREE.Vector2(0.134, -0.12),
-    new THREE.Vector2(0.148, -0.18),
-    new THREE.Vector2(0.16, -0.24),
+    new THREE.Vector2(0.176, 0.1),
+    new THREE.Vector2(0.148, 0.04),
+    new THREE.Vector2(0.118, -0.012),
+    new THREE.Vector2(0.11, -0.062),
+    new THREE.Vector2(0.122, -0.12),
+    new THREE.Vector2(0.14, -0.18),
+    new THREE.Vector2(0.154, -0.24),
   ];
   const geo = new THREE.LatheGeometry(profile, 32);
   const pos = geo.attributes.position;
@@ -279,13 +279,13 @@ export function createPelvis(): THREE.BufferGeometry {
  */
 export function createCrotchGuard(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.138, 0.22),
-    new THREE.Vector2(0.146, 0.12),
-    new THREE.Vector2(0.142, 0.03),
-    new THREE.Vector2(0.128, -0.06),
-    new THREE.Vector2(0.108, -0.16),
-    new THREE.Vector2(0.086, -0.26),
-    new THREE.Vector2(0.07, -0.36),
+    new THREE.Vector2(0.12, 0.22),
+    new THREE.Vector2(0.128, 0.12),
+    new THREE.Vector2(0.124, 0.03),
+    new THREE.Vector2(0.112, -0.06),
+    new THREE.Vector2(0.096, -0.16),
+    new THREE.Vector2(0.08, -0.26),
+    new THREE.Vector2(0.066, -0.36),
   ];
   const geo = new THREE.LatheGeometry(profile, 28);
   const pos = geo.attributes.position;
@@ -354,8 +354,8 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
     const quad = Math.exp(-(((t - 0.4) / 0.26) ** 2));
     rings.push({
       y: -t * length,
-      rx: 0.07 + quad * 0.03 - t * 0.01,
-      rzFront: (t < 0.1 ? 0.04 : 0.088) + quad * 0.1 - t * 0.008,
+      rx: 0.082 + quad * 0.034 - t * 0.012,
+      rzFront: (t < 0.1 ? 0.048 : 0.1) + quad * 0.11 - t * 0.01,
       rzBack: 0.014 + quad * 0.008,
       ridge: 0.006 * quad,
       lip: i === 0 ? 0.32 : i === steps ? 0.88 : 1,
@@ -382,8 +382,8 @@ export function createShinShell(length: number): THREE.BufferGeometry {
     const ridge = Math.max(0, 1 - Math.abs(t - 0.36) * 1.7);
     rings.push({
       y: -t * length,
-      rx: 0.06 - t * 0.01,
-      rzFront: 0.145 - t * 0.028,
+      rx: 0.068 - t * 0.012,
+      rzFront: 0.155 - t * 0.03,
       rzBack: 0.018 - t * 0.004,
       ridge: 0.006 * ridge,
       lip: i === 0 || i === steps ? 0.88 : 1,
