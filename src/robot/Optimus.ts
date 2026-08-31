@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
+  createBoot,
   createCrotchGuard,
   createDeltoid,
   createFinger,
@@ -11,9 +12,11 @@ import {
   createPecShell,
   createPelvis,
   createShinShell,
+  createShoulderCap,
   createThorax,
   createThighShell,
   createVisorSkull,
+  createWaistBuckle,
 } from "./geometries.ts";
 import { createRobotMaterials, type RobotMaterials } from "./materials.ts";
 
@@ -156,37 +159,39 @@ export class Optimus {
     this.hips.add(bowl);
 
     const crotch = this.mesh(createCrotchGuard(), this.mats.matte);
-    crotch.position.set(0, -0.1, 0.04);
+    crotch.position.set(0, -0.06, 0.02);
     this.hips.add(crotch);
 
     for (const side of [-1, 1]) {
-      const motor = this.mesh(new THREE.CylinderGeometry(0.024, 0.03, 0.09, 12), this.mats.actuator);
-      motor.rotation.z = side * 0.72;
-      motor.position.set(side * 0.108, 0.01, 0.016);
+      const motor = this.mesh(new THREE.CylinderGeometry(0.022, 0.028, 0.08, 12), this.mats.actuator);
+      motor.rotation.z = side * 0.78;
+      motor.position.set(side * 0.1, 0.008, 0.012);
       this.hips.add(motor);
-      const cup = this.mesh(new THREE.SphereGeometry(0.05, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.75), this.mats.matte);
+      const cup = this.mesh(new THREE.SphereGeometry(0.042, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.72), this.mats.joint);
       cup.rotation.x = Math.PI;
-      cup.position.set(side * 0.122, -0.02, 0.01);
+      cup.position.set(side * 0.118, -0.018, 0.008);
       this.hips.add(cup);
     }
   }
 
   private buildTorso(): void {
     const thorax = this.mesh(createThorax(), this.mats.matte);
-    thorax.position.y = 0.02;
+    thorax.position.y = 0.018;
     this.chest.add(thorax);
 
-    const pecMat = this.mats.white.clone();
-    pecMat.side = THREE.DoubleSide;
-    const pecs = this.mesh(createPecShell(), pecMat);
+    const pecs = this.mesh(createPecShell(), this.mats.white);
     pecs.name = "pecShell";
-    pecs.position.y = 0.016;
-    pecs.position.z = 0.01;
+    pecs.position.y = 0.012;
+    pecs.position.z = 0.008;
     this.chest.add(pecs);
 
     const waist = this.mesh(createMidriff(), this.mats.matte);
-    waist.position.y = -0.02;
+    waist.position.y = -0.018;
     this.chest.add(waist);
+
+    const buckle = this.mesh(createWaistBuckle(), this.mats.metal);
+    buckle.position.set(0, -0.03, 0.078);
+    this.chest.add(buckle);
   }
 
   private buildNeck(): void {
@@ -209,11 +214,15 @@ export class Optimus {
 
   private arm(side: number): THREE.Group {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.268, 0.248, 0.016);
+    shoulder.position.set(side * 0.282, 0.255, 0.012);
     this.chest.add(shoulder);
 
-    const socket = this.mesh(new THREE.SphereGeometry(0.012, 8, 6), this.mats.joint);
-    socket.position.set(side * 0.02, -0.04, 0);
+    const cap = this.mesh(createShoulderCap(side), this.mats.white);
+    cap.position.set(side * 0.018, 0.016, 0.006);
+    shoulder.add(cap);
+
+    const socket = this.mesh(new THREE.SphereGeometry(0.016, 10, 8), this.mats.joint);
+    socket.position.set(side * 0.02, -0.036, 0);
     shoulder.add(socket);
 
     const upper = new THREE.Group();
@@ -221,15 +230,15 @@ export class Optimus {
     shoulder.add(upper);
 
     const sleeve = this.mesh(createDeltoid(side), this.mats.white);
-    sleeve.position.set(0, -0.008, 0.008);
+    sleeve.position.set(0, -0.008, 0.006);
     upper.add(sleeve);
 
-    const housing = this.mesh(createLimbShell(0.2, 0.056, 0.046, 0.058), this.mats.white);
+    const housing = this.mesh(createLimbShell(0.2, 0.05, 0.042, 0.05), this.mats.white);
     housing.position.y = -0.055;
     upper.add(housing);
 
-    const bicep = this.panel(0.062, 0.155, 0.024, this.mats.white, 0.014);
-    bicep.position.set(0, -0.118, 0.04);
+    const bicep = this.panel(0.054, 0.14, 0.02, this.mats.white, 0.012);
+    bicep.position.set(0, -0.118, 0.036);
     upper.add(bicep);
 
     const elbow = new THREE.Group();
@@ -338,13 +347,9 @@ export class Optimus {
     const joint = this.mesh(new THREE.SphereGeometry(0.024, 10, 8), this.mats.joint);
     ankle.add(joint);
 
-    const boot = this.panel(0.086, 0.058, 0.2, this.mats.matte, 0.024);
-    boot.position.set(0, -0.036, 0.042);
+    const boot = this.mesh(createBoot(), this.mats.matte);
+    boot.position.set(0, -0.03, 0.038);
     ankle.add(boot);
-    const toe = this.mesh(new THREE.SphereGeometry(0.036, 14, 10), this.mats.matte);
-    toe.scale.set(1.15, 0.72, 1.2);
-    toe.position.set(0, -0.04, 0.138);
-    ankle.add(toe);
 
     return hip;
   }
