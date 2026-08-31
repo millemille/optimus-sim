@@ -7,6 +7,7 @@ import {
   createLimbShell,
   createMidriff,
   createPecShell,
+  createPelvis,
   createShinShell,
   createThorax,
   createThighShell,
@@ -148,15 +149,23 @@ export class Optimus {
   }
 
   private buildPelvis(): void {
-    const core = this.mesh(new THREE.CylinderGeometry(0.07, 0.078, 0.074, 16), this.mats.matte);
-    this.hips.add(core);
+    const bowl = this.mesh(createPelvis(), this.mats.matte);
+    bowl.position.y = 0.012;
+    this.hips.add(bowl);
+
+    const bridge = this.panel(0.2, 0.07, 0.08, this.mats.matte, 0.016);
+    bridge.position.set(0, 0.006, 0.02);
+    this.hips.add(bridge);
 
     for (const side of [-1, 1]) {
-      const motor = this.mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.07, 12), this.mats.actuator);
-      motor.rotation.z = side * 0.65;
-      motor.position.set(side * 0.085, 0.025, 0.012);
+      const motor = this.mesh(new THREE.CylinderGeometry(0.022, 0.028, 0.08, 12), this.mats.actuator);
+      motor.rotation.z = side * 0.72;
+      motor.position.set(side * 0.1, 0.018, 0.014);
       this.hips.add(motor);
-
+      const cup = this.mesh(new THREE.SphereGeometry(0.042, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.7), this.mats.matte);
+      cup.rotation.x = Math.PI;
+      cup.position.set(side * 0.118, -0.012, 0.004);
+      this.hips.add(cup);
     }
   }
 
@@ -251,36 +260,28 @@ export class Optimus {
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
 
-    const palm = this.panel(0.078, 0.056, 0.034, this.mats.matte, 0.016);
-    palm.position.set(0, -0.036, 0);
+    const palm = this.panel(0.086, 0.062, 0.04, this.mats.matte, 0.018);
+    palm.position.set(0, -0.038, 0.002);
     g.add(palm);
-    const dorsal = this.panel(0.074, 0.05, 0.014, this.mats.white, 0.012);
-    dorsal.position.set(0, -0.032, 0.018);
+    const dorsal = this.panel(0.082, 0.056, 0.016, this.mats.white, 0.014);
+    dorsal.position.set(0, -0.034, 0.022);
     g.add(dorsal);
 
-    const xs = [-0.028, -0.009, 0.01, 0.028];
-    const prox = [0.042, 0.048, 0.046, 0.038];
-    const dist = [0.032, 0.036, 0.034, 0.03];
-    const widths = [0.02, 0.0215, 0.0208, 0.0185];
-    const fans = [-0.08, -0.02, 0.03, 0.1];
+    const xs = [-0.03, -0.01, 0.01, 0.029];
+    const lens = [0.07, 0.078, 0.074, 0.064];
+    const widths = [0.022, 0.024, 0.023, 0.02];
+    const fans = [-0.1, -0.028, 0.034, 0.12];
     for (let i = 0; i < 4; i += 1) {
-      const p = this.mesh(createFinger(prox[i], widths[i]), this.mats.white);
-      p.position.set(xs[i], -0.06, 0.008);
+      const p = this.mesh(createFinger(lens[i], widths[i]), this.mats.white);
+      p.position.set(xs[i], -0.062, 0.012);
       p.rotation.z = fans[i];
-      p.rotation.x = 0.12;
+      p.rotation.x = 0.16;
       g.add(p);
-      const midX = xs[i] + Math.sin(fans[i]) * (prox[i] - 0.008);
-      const midY = -0.06 - Math.cos(fans[i]) * (prox[i] - 0.008);
-      const d = this.mesh(createFinger(dist[i], widths[i] * 0.88), this.mats.white);
-      d.position.set(midX, midY, 0.01);
-      d.rotation.z = fans[i];
-      d.rotation.x = 0.2;
-      g.add(d);
     }
 
-    const thumb = this.mesh(createFinger(0.04, 0.017), this.mats.white);
-    thumb.position.set(side * 0.034, -0.02, 0.014);
-    thumb.rotation.set(0.5, side * 0.22, side * 0.92);
+    const thumb = this.mesh(createFinger(0.048, 0.02), this.mats.white);
+    thumb.position.set(side * 0.036, -0.018, 0.018);
+    thumb.rotation.set(0.55, side * 0.24, side * 0.95);
     g.add(thumb);
     return g;
   }

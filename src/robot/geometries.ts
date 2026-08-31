@@ -110,51 +110,62 @@ function loftArmor(
 }
 
 /**
- * Pec and deltoid as one front shell. Every column across the
- * shoulder has z well in front of the thorax, so the camera
- * cannot see a hole. Width holds through the sleeve, then
- * dumps. No oval sides, no pauldron, no extruded card, no back
- * wings.
+ * Fitted pec that wraps into a round deltoid. Front wall stays
+ * continuous (hole closed). Thickness is a U so the side is a
+ * body and the back is not a wing. Outer dump is a
+ * quarter-circle, not a pointed T-shelf.
  */
 export function createPecShell(): THREE.BufferGeometry {
   const rings = [
-    { y: 0.27, rx: 0.09, zFront: 0.048, zSide: 0.036 },
-    { y: 0.254, rx: 0.132, zFront: 0.056, zSide: 0.04 },
-    { y: 0.238, rx: 0.188, zFront: 0.064, zSide: 0.046 },
-    { y: 0.222, rx: 0.268, zFront: 0.074, zSide: 0.05 },
-    { y: 0.206, rx: 0.348, zFront: 0.08, zSide: 0.054 },
-    { y: 0.19, rx: 0.388, zFront: 0.084, zSide: 0.056 },
-    { y: 0.17, rx: 0.38, zFront: 0.082, zSide: 0.054 },
-    { y: 0.148, rx: 0.352, zFront: 0.078, zSide: 0.05 },
-    { y: 0.122, rx: 0.3, zFront: 0.074, zSide: 0.044 },
-    { y: 0.088, rx: 0.228, zFront: 0.068, zSide: 0.036 },
-    { y: 0.048, rx: 0.196, zFront: 0.056, zSide: 0.028 },
-    { y: 0.01, rx: 0.168, zFront: 0.04, zSide: 0.02 },
+    { y: 0.266, rx: 0.084, zF: 0.058 },
+    { y: 0.248, rx: 0.126, zF: 0.072 },
+    { y: 0.23, rx: 0.198, zF: 0.086 },
+    { y: 0.212, rx: 0.298, zF: 0.096 },
+    { y: 0.194, rx: 0.372, zF: 0.102 },
+    { y: 0.174, rx: 0.4, zF: 0.098 },
+    { y: 0.152, rx: 0.39, zF: 0.09 },
+    { y: 0.128, rx: 0.352, zF: 0.082 },
+    { y: 0.098, rx: 0.268, zF: 0.074 },
+    { y: 0.06, rx: 0.206, zF: 0.06 },
+    { y: 0.016, rx: 0.174, zF: 0.046 },
   ];
   const segs = 40;
   const cols = segs + 1;
   const positions: number[] = [];
   const indices: number[] = [];
 
+  const sculpt = (rx: number, y0: number, xn: number, xScale: number, z: number) => {
+    let x = rx * xn * xScale;
+    let y = y0;
+    if (y > 0.234) {
+      const u = Math.exp(-((x / 0.078) ** 2)) * ((y - 0.234) / 0.032);
+      y -= u * 0.03;
+    }
+    if (Math.abs(rx * xn) > 0.26 && y > 0.13) {
+      const t = Math.min(1, (Math.abs(rx * xn) - 0.26) / 0.14);
+      y -= t * t * 0.034;
+    }
+    if (xScale > 0.9 && Math.abs(x) < 0.2) {
+      const pec = Math.exp(-(x * x) / 0.03) * Math.exp(-((y - 0.12) ** 2) / 0.014);
+      z += pec * 0.024;
+    }
+    return { x, y, z: xScale > 0.9 ? Math.max(0.052, z) : z };
+  };
+
   for (const ring of rings) {
     for (let j = 0; j <= segs; j += 1) {
       const xn = (j / segs) * 2 - 1;
-      let x = ring.rx * xn;
-      let y = ring.y;
-      let z = ring.zSide + (ring.zFront - ring.zSide) * (1 - xn * xn);
-      if (y > 0.234) {
-        const u = Math.exp(-((x / 0.078) ** 2)) * ((y - 0.234) / 0.032);
-        y -= u * 0.034;
-      }
-      if (Math.abs(x) < 0.18) {
-        const pec = Math.exp(-(x * x) / 0.028) * Math.exp(-((y - 0.11) ** 2) / 0.012);
-        z += pec * 0.018;
-      }
-      if (Math.abs(x) > 0.33 && y > 0.15) {
-        const t = Math.min(1, (Math.abs(x) - 0.33) / 0.06);
-        y -= t * 0.018;
-      }
-      positions.push(x, y, z);
+      const z = 0.052 + (ring.zF - 0.052) * (1 - xn * xn);
+      const v = sculpt(ring.rx, ring.y, xn, 1, z);
+      positions.push(v.x, v.y, v.z);
+    }
+  }
+  const innerOff = rings.length * cols;
+  for (const ring of rings) {
+    for (let j = 0; j <= segs; j += 1) {
+      const xn = (j / segs) * 2 - 1;
+      const v = sculpt(ring.rx, ring.y, xn, 0.48 + 0.1 * (1 - xn * xn), 0.012);
+      positions.push(v.x, v.y, v.z);
     }
   }
 
@@ -166,7 +177,24 @@ export function createPecShell(): THREE.BufferGeometry {
       const c = a + cols;
       const d = c + 1;
       indices.push(a, c, b, b, c, d);
+      const ia = innerOff + a;
+      indices.push(ia, ia + 1, ia + cols, ia + 1, ia + cols + 1, ia + cols);
     }
+  }
+  for (let i = 0; i < last; i += 1) {
+    for (const j of [0, segs]) {
+      const af = i * cols + j;
+      const cf = af + cols;
+      const ai = innerOff + i * cols + j;
+      const ci = ai + cols;
+      if (j === 0) indices.push(af, ai, cf, cf, ai, ci);
+      else indices.push(af, cf, ai, cf, ci, ai);
+    }
+  }
+  for (let j = 0; j < segs; j += 1) {
+    indices.push(j, j + 1, innerOff + j, j + 1, innerOff + j + 1, innerOff + j);
+    const c = last * cols + j;
+    indices.push(c, innerOff + c, c + 1, c + 1, innerOff + c, innerOff + c + 1);
   }
 
   const geo = new THREE.BufferGeometry();
@@ -197,22 +225,43 @@ export function createThorax(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Fitted black waist from pec hem down to the hips. Not a hollow cage. */
+/** Fitted black waist from pec hem into the pelvis. */
 export function createMidriff(): THREE.BufferGeometry {
   const profile = [
-    new THREE.Vector2(0.186, 0.108),
-    new THREE.Vector2(0.166, 0.068),
-    new THREE.Vector2(0.148, 0.024),
-    new THREE.Vector2(0.14, -0.02),
-    new THREE.Vector2(0.144, -0.064),
-    new THREE.Vector2(0.154, -0.108),
-    new THREE.Vector2(0.164, -0.152),
+    new THREE.Vector2(0.182, 0.1),
+    new THREE.Vector2(0.164, 0.058),
+    new THREE.Vector2(0.15, 0.016),
+    new THREE.Vector2(0.144, -0.028),
+    new THREE.Vector2(0.15, -0.072),
+    new THREE.Vector2(0.16, -0.118),
+    new THREE.Vector2(0.168, -0.168),
   ];
   const geo = new THREE.LatheGeometry(profile, 32);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const z = pos.getZ(i);
-    pos.setZ(i, z > 0 ? z * 0.82 : z * 0.55);
+    pos.setZ(i, z > 0 ? z * 0.8 : z * 0.5);
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Black mechanical pelvis. Fills the studio-gray hole between waist and thighs. */
+export function createPelvis(): THREE.BufferGeometry {
+  const profile = [
+    new THREE.Vector2(0.122, 0.078),
+    new THREE.Vector2(0.136, 0.042),
+    new THREE.Vector2(0.142, 0.006),
+    new THREE.Vector2(0.138, -0.03),
+    new THREE.Vector2(0.124, -0.058),
+    new THREE.Vector2(0.1, -0.082),
+  ];
+  const geo = new THREE.LatheGeometry(profile, 28);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const z = pos.getZ(i);
+    pos.setZ(i, z > 0 ? z * 0.72 : z * 0.48);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -323,13 +372,14 @@ export function createKneeCap(): THREE.BufferGeometry {
   return geo;
 }
 
-/** One finger volume. Oval section, not a plate, hoop, or sphere cluster. */
+/** One finger: D-shell with a white plate face. Not a block, hoop, or cluster. */
 export function createFinger(length: number, width: number): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0, rx: width * 0.48, rzFront: width * 0.44, rzBack: width * 0.4, power: 0.72, lip: 0.9 },
-    { y: -length * 0.5, rx: width * 0.54, rzFront: width * 0.5, rzBack: width * 0.42, power: 0.68 },
-    { y: -length, rx: width * 0.4, rzFront: width * 0.36, rzBack: width * 0.3, power: 0.72, lip: 0.86 },
+    { y: 0, rx: width * 0.4, rzFront: width * 0.82, rzBack: width * 0.26, power: 0.5, lip: 0.88 },
+    { y: -length * 0.4, rx: width * 0.48, rzFront: width * 1.05, rzBack: width * 0.3, power: 0.48 },
+    { y: -length * 0.76, rx: width * 0.4, rzFront: width * 0.86, rzBack: width * 0.24, power: 0.5 },
+    { y: -length, rx: width * 0.3, rzFront: width * 0.52, rzBack: width * 0.16, power: 0.52, lip: 0.8 },
   ];
-  return loftArmor(rings, 18, "both");
+  return loftArmor(rings, 20, "both");
 }
 
