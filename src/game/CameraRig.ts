@@ -27,13 +27,15 @@ export class CameraRig {
     this.pitch = THREE.MathUtils.clamp(this.pitch + pitch * 1.3 * dt, MIN_PITCH, MAX_PITCH);
   }
 
-  setPortrait(view: "front" | "q" | "side"): void {
+  setPortrait(view: "front" | "q" | "side" | "back" | "spin"): void {
     this.distance = 3.15;
     this.lookHeight = 0.86;
     this.pitch = 0.03;
     if (view === "front") this.yaw = 0;
     else if (view === "q") this.yaw = 0.68;
-    else this.yaw = Math.PI / 2;
+    else if (view === "side") this.yaw = Math.PI / 2;
+    else if (view === "back") this.yaw = Math.PI;
+    else this.yaw = 0;
   }
 
   update(origin: THREE.Vector3): void {

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const chrome = "/usr/bin/google-chrome";
-const views = ["front", "q", "side"];
+const views = ["front", "q", "side", "back"];
 const outDir = process.argv[2] ?? "/tmp/optimus-stills";
 const base = process.argv[3] ?? "http://127.0.0.1:5174";
 

@@ -19,6 +19,7 @@ export class Game {
   private readonly mission: Mission;
   private readonly hud: Hud;
   private readonly clock = new THREE.Clock();
+  private studioAngle = 0;
   private playing = false;
   private started = false;
   private raf = 0;
@@ -58,7 +59,7 @@ export class Game {
     if (this.studio) {
       this.scene.environment = null;
       this.renderer.toneMapping = THREE.NeutralToneMapping;
-      this.renderer.toneMappingExposure = 0.94;
+      this.renderer.toneMappingExposure = 1.08;
       this.scene.fog = null;
       this.scene.background = new THREE.Color(0x5c5a56);
       this.factory.group.visible = false;
@@ -76,6 +77,10 @@ export class Game {
       floor.receiveShadow = true;
       this.scene.add(floor);
       poseStudioCamera(this.cameraRig, this.studio);
+      if (this.studio === "spin") {
+        this.studioAngle = 0;
+        this.cameraRig.yaw = 0;
+      }
       this.hud.hideAll();
     } else {
       this.cameraRig.yaw = Math.PI;
@@ -137,6 +142,10 @@ export class Game {
     const dt = Math.min(this.clock.getDelta(), 0.05);
     if (this.studio) {
       this.player.robot.update(dt, false, 0, false);
+      if (this.studio === "spin") {
+        this.studioAngle = (this.studioAngle + dt * 0.5) % (Math.PI * 2);
+        this.cameraRig.yaw = this.studioAngle;
+      }
       this.cameraRig.update(this.player.position);
       this.renderer.render(this.scene, this.camera);
       return;

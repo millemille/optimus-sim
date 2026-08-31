@@ -12,16 +12,16 @@ export type RobotMaterials = {
 export function createRobotMaterials(): RobotMaterials {
   return {
     white: new THREE.MeshStandardMaterial({
-      color: 0xf3efe6,
-      roughness: 0.46,
-      metalness: 0.02,
-      envMapIntensity: 0.12,
+      color: 0xe6e4de,
+      roughness: 0.4,
+      metalness: 0.16,
+      envMapIntensity: 0.18,
     }),
     skull: new THREE.MeshStandardMaterial({
-      color: 0x0c0c0e,
-      roughness: 0.28,
-      metalness: 0.12,
-      envMapIntensity: 0,
+      color: 0x0a0a0c,
+      roughness: 0.16,
+      metalness: 0.22,
+      envMapIntensity: 0.04,
     }),
     joint: new THREE.MeshStandardMaterial({
       color: 0x141416,
