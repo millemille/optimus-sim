@@ -148,20 +148,20 @@ export function createPecShell(): THREE.BufferGeometry {
   const topEdge = (xn: number) => {
     const ax = Math.abs(xn);
     const side = xn < 0 ? -1 : 1;
-    if (ax <= 0.56) {
-      const t = ax / 0.56;
+    if (ax <= 0.4) {
+      const t = ax / 0.4;
       return {
-        x: side * THREE.MathUtils.lerp(0, 0.24, t),
-        y: 0.214 + 0.048 * t ** 0.58,
-        z: 0.09 - 0.022 * t * t,
+        x: side * THREE.MathUtils.lerp(0, 0.172, t),
+        y: 0.21 + 0.05 * t ** 0.55,
+        z: 0.094 - 0.026 * t * t,
       };
     }
-    const t = (ax - 0.56) / 0.44;
-    const ang = THREE.MathUtils.lerp(Math.PI * 0.5, 0.1, t);
+    const t = (ax - 0.4) / 0.6;
+    const ang = THREE.MathUtils.lerp(Math.PI * 0.5, 0.08, t);
     return {
-      x: side * (0.24 + 0.162 * Math.cos(ang)),
-      y: 0.138 + 0.128 * Math.sin(ang),
-      z: 0.05 + 0.044 * Math.sin(ang),
+      x: side * (0.172 + 0.232 * Math.cos(ang)),
+      y: 0.128 + 0.132 * Math.sin(ang),
+      z: 0.05 + 0.046 * Math.sin(ang),
     };
   };
 
