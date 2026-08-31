@@ -102,104 +102,65 @@ function loftArmor(
 }
 
 /**
- * Showroom chest plate: one white shield, V-collar, slight pec camber,
- * taper into the waist. Not a wrap into the arms and not two spheres.
+ * One continuous white torso shell: volumetric chest, integrated rear
+ * scapula humps and spine channel. No floating back plates.
  */
 export function createPecShell(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0.305, rx: 0.086, rzFront: 0.05, rzBack: 0.03, power: 0.72, lip: 0.94 },
-    { y: 0.268, rx: 0.176, rzFront: 0.072, rzBack: 0.036, power: 0.6 },
-    { y: 0.22, rx: 0.216, rzFront: 0.094, rzBack: 0.042, power: 0.5 },
-    { y: 0.155, rx: 0.212, rzFront: 0.112, rzBack: 0.044, power: 0.46 },
-    { y: 0.08, rx: 0.188, rzFront: 0.096, rzBack: 0.038, power: 0.5 },
-    { y: 0.02, rx: 0.158, rzFront: 0.076, rzBack: 0.032, power: 0.55 },
-    { y: -0.04, rx: 0.132, rzFront: 0.058, rzBack: 0.026, power: 0.6, lip: 0.94 },
+    { y: 0.31, rx: 0.09, rzFront: 0.072, rzBack: 0.068, power: 0.66, lip: 0.92 },
+    { y: 0.265, rx: 0.192, rzFront: 0.162, rzBack: 0.128, power: 0.46 },
+    { y: 0.21, rx: 0.228, rzFront: 0.192, rzBack: 0.138, power: 0.42 },
+    { y: 0.145, rx: 0.224, rzFront: 0.178, rzBack: 0.132, power: 0.4 },
+    { y: 0.075, rx: 0.202, rzFront: 0.142, rzBack: 0.112, power: 0.44 },
+    { y: 0.015, rx: 0.172, rzFront: 0.108, rzBack: 0.094, power: 0.48 },
+    { y: -0.042, rx: 0.142, rzFront: 0.082, rzBack: 0.078, power: 0.52, lip: 0.94 },
   ];
-  const geo = loftArmor(rings, 48);
+  const geo = loftArmor(rings, 52);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
-    const y = pos.getY(i);
-    const z = pos.getZ(i);
-    // V-neck: drop the top-front center so the black neck reads through.
-    if (y > 0.22 && z > 0.01) {
-      const across = 1 - Math.min(1, Math.abs(x) / 0.13);
-      const down = (y - 0.22) / 0.09;
+    let y = pos.getY(i);
+    let z = pos.getZ(i);
+
+    // V-neck: shallow cut at the collar only — chest stays one solid curved plate.
+    if (y > 0.24 && z > 0.04) {
+      const across = 1 - Math.min(1, Math.abs(x) / 0.11);
+      const down = (y - 0.24) / 0.07;
       const v = across * across * down;
-      pos.setY(i, y - v * 0.078);
-      pos.setZ(i, z - v * 0.028);
+      y -= v * 0.048;
+      z -= v * 0.014;
     }
-    // Soft center valley between pecs, not two balloons.
-    if (z > 0.04 && y > 0.06 && y < 0.22) {
-      const valley = Math.exp(-(x * x) / 0.004) * Math.exp(-((y - 0.15) ** 2) / 0.012);
-      pos.setZ(i, z - valley * 0.012);
-    }
-  }
-  pos.needsUpdate = true;
-  geo.computeVertexNormals();
-  return geo;
-}
 
-/** Beveled front shield that gives Optimus its recognizable clean chest face. */
-export function createChestFace(): THREE.BufferGeometry {
-  const shape = new THREE.Shape();
-  shape.moveTo(-0.128, 0.285);
-  shape.lineTo(-0.19, 0.22);
-  shape.lineTo(-0.184, 0.09);
-  shape.lineTo(-0.145, -0.025);
-  shape.lineTo(-0.082, -0.05);
-  shape.lineTo(0, -0.056);
-  shape.lineTo(0.082, -0.05);
-  shape.lineTo(0.145, -0.025);
-  shape.lineTo(0.184, 0.09);
-  shape.lineTo(0.19, 0.22);
-  shape.lineTo(0.128, 0.285);
-  shape.lineTo(0.054, 0.3);
-  shape.lineTo(0, 0.258);
-  shape.lineTo(-0.054, 0.3);
-  shape.closePath();
-  const geo = new THREE.ExtrudeGeometry(shape, {
-    depth: 0.014,
-    bevelEnabled: true,
-    bevelSegments: 3,
-    bevelSize: 0.008,
-    bevelThickness: 0.006,
-    curveSegments: 8,
-  });
-  geo.translate(0, 0, -0.007);
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i += 1) {
-    const x = pos.getX(i);
-    const y = pos.getY(i);
-    const across = Math.max(0, 1 - (x / 0.2) ** 2);
-    const vertical = Math.max(0, 1 - ((y - 0.12) / 0.22) ** 2);
-    pos.setZ(i, pos.getZ(i) + across * vertical * 0.025);
-  }
-  pos.needsUpdate = true;
-  geo.computeVertexNormals();
-  return geo;
-}
-
-/** White shoulder-blade shell seen in rear and three-quarter views. */
-export function createBackShell(): THREE.BufferGeometry {
-  const rings: ArmorRing[] = [
-    { y: 0.28, rx: 0.105, rzFront: 0.025, rzBack: 0.048, power: 0.7, lip: 0.9 },
-    { y: 0.22, rx: 0.19, rzFront: 0.034, rzBack: 0.064, power: 0.62 },
-    { y: 0.13, rx: 0.2, rzFront: 0.038, rzBack: 0.072, power: 0.58 },
-    { y: 0.04, rx: 0.17, rzFront: 0.03, rzBack: 0.06, power: 0.62 },
-    { y: -0.03, rx: 0.13, rzFront: 0.024, rzBack: 0.046, power: 0.68, lip: 0.92 },
-  ];
-  const geo = loftArmor(rings, 40);
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i += 1) {
-    const x = pos.getX(i);
-    const z = pos.getZ(i);
-    if (z > 0) pos.setZ(i, z * 0.32);
-    // Shallow center channel keeps the rear from reading as one plastic blob.
-    if (z < 0) {
-      const channel = Math.exp(-(x * x) / 0.0025);
-      pos.setZ(i, z + channel * 0.014);
+    // Showroom chest volume — forward camber, not a flat plate.
+    if (z > 0.02 && y > 0.02 && y < 0.29) {
+      const centerPec = Math.exp(-(x * x) / 0.038) * Math.exp(-((y - 0.15) ** 2) / 0.022);
+      z += centerPec * 0.078;
+      const lateralPec = Math.exp(-((Math.abs(x) - 0.108) ** 2) / 0.009) * Math.exp(-((y - 0.15) ** 2) / 0.022);
+      z += lateralPec * 0.036;
     }
+
+    // Wrap the sides around the body — avoids flat vertical slabs at the armpits.
+    if (Math.abs(x) > 0.12 && y > 0.02 && y < 0.28) {
+      const side = Math.min(1, (Math.abs(x) - 0.12) / 0.07);
+      const band = Math.exp(-((y - 0.16) ** 2) / 0.028);
+      z -= side * band * 0.078;
+    }
+
+    // Integrated rear anatomy — continuous scapula swell, no spine gap.
+    if (z < -0.004 && y > 0.05 && y < 0.29) {
+      const ax = Math.abs(x);
+      const scapula =
+        Math.exp(-((ax - 0.096) ** 2) / 0.0052) * Math.exp(-((y - 0.17) ** 2) / 0.026);
+      z -= scapula * 0.028;
+      // Keep center back flush so the black thorax does not read as a detached strip.
+      if (ax < 0.055) {
+        z -= 0.012 * Math.exp(-((y - 0.16) ** 2) / 0.03);
+      }
+    }
+
+    pos.setX(i, x);
+    pos.setY(i, y);
+    pos.setZ(i, z);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -219,8 +180,8 @@ export function createThorax(): THREE.BufferGeometry {
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const z = pos.getZ(i);
-    pos.setX(i, pos.getX(i) * 0.78);
-    pos.setZ(i, z > 0 ? z * 0.62 : z * 0.4);
+    pos.setX(i, pos.getX(i) * 0.76);
+    pos.setZ(i, z > 0 ? z * 0.68 : z * 0.44);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -265,8 +226,16 @@ export function createPelvis(): THREE.BufferGeometry {
   const geo = new THREE.LatheGeometry(profile, 28);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
-    const z = pos.getZ(i);
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    let z = pos.getZ(i);
     pos.setZ(i, z > 0 ? z * 0.72 : z * 0.42);
+    // Integrated sacrum fairing — no floating rear plate.
+    if (z < 0 && y > -0.04 && y < 0.04) {
+      const sacrum = Math.exp(-(x * x) / 0.004) * Math.exp(-((y + 0.01) ** 2) / 0.0025);
+      z -= sacrum * 0.018;
+      pos.setZ(i, z);
+    }
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -337,7 +306,7 @@ export function createLimbShell(
       y: -t * length,
       rx: rxTop + (rxBot - rxTop) * t,
       rzFront: rz * (1.05 + mid * 0.18),
-      rzBack: rz * 0.28,
+      rzBack: rz * (0.42 + mid * 0.12),
       ridge: 0.003 * mid,
       lip: i === 0 || i === steps ? 0.88 : 1,
       power: 0.5,
@@ -367,7 +336,15 @@ export function createThighShell(length: number, side: number): THREE.BufferGeom
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
     const x = pos.getX(i);
+    const y = pos.getY(i);
+    let z = pos.getZ(i);
     if (x * side < 0) pos.setX(i, x * 0.55);
+    // Rear hamstring swell integrated into the thigh shell, not a floating plate.
+    if (z < -0.004 && y < -0.04 && y > -0.3) {
+      const ham = Math.exp(-((y + 0.16) ** 2) / 0.042) * Math.exp(-(x * x) / 0.014);
+      z -= ham * 0.024;
+      pos.setZ(i, z);
+    }
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
@@ -391,26 +368,21 @@ export function createShinShell(length: number): THREE.BufferGeometry {
       power: 0.5,
     });
   }
-  return loftArmor(rings, 28, "both");
-}
-
-/** Rear calf fairing, narrower than the front shin with room for link rods. */
-export function createCalfShell(length: number): THREE.BufferGeometry {
-  const rings: ArmorRing[] = [];
-  const steps = 10;
-  for (let i = 0; i <= steps; i += 1) {
-    const t = i / steps;
-    const calf = Math.exp(-(((t - 0.38) / 0.3) ** 2));
-    rings.push({
-      y: -t * length,
-      rx: 0.042 + calf * 0.012 - t * 0.006,
-      rzFront: 0.016,
-      rzBack: 0.038 + calf * 0.028,
-      power: 0.62,
-      lip: i === 0 || i === steps ? 0.88 : 1,
-    });
+  const geo = loftArmor(rings, 28, "both");
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i += 1) {
+    const y = pos.getY(i);
+    let z = pos.getZ(i);
+    // Integrated rear calf fairing — no separate floating back plate.
+    if (z < -0.004) {
+      const calf = Math.exp(-((y + 0.12) ** 2) / 0.028);
+      z -= calf * 0.02;
+      pos.setZ(i, z);
+    }
   }
-  return loftArmor(rings, 24, "both");
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  return geo;
 }
 
 /** White kneecap on the front of the joint. */

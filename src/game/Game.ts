@@ -77,6 +77,10 @@ export class Game {
       floor.receiveShadow = true;
       this.scene.add(floor);
       poseStudioCamera(this.cameraRig, this.studio);
+      if (this.studio === "spin") {
+        this.studioAngle = 0;
+        this.cameraRig.yaw = 0;
+      }
       this.hud.hideAll();
     } else {
       this.cameraRig.yaw = Math.PI;

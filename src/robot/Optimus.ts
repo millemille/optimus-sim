@@ -1,10 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import {
-  createBackShell,
   createBoot,
-  createCalfShell,
-  createChestFace,
   createCrotchGuard,
   createDeltoid,
   createFinger,
@@ -189,10 +186,6 @@ export class Optimus {
       hipBridge.rotation.z = side * -0.22;
       this.hips.add(hipBridge);
     }
-
-    const sacrum = this.panel(0.11, 0.105, 0.028, this.mats.metal, 0.018);
-    sacrum.position.set(0, -0.015, -0.067);
-    this.hips.add(sacrum);
   }
 
   private buildTorso(): void {
@@ -203,33 +196,8 @@ export class Optimus {
     const pecs = this.mesh(createPecShell(), this.mats.white);
     pecs.name = "pecShell";
     pecs.position.y = 0.012;
-    pecs.position.z = 0.008;
+    pecs.position.z = 0.004;
     this.chest.add(pecs);
-
-    const chestFace = this.mesh(createChestFace(), this.mats.white);
-    chestFace.name = "chestFace";
-    chestFace.position.set(0, 0.014, 0.102);
-    chestFace.scale.set(0.94, 0.96, 1);
-    this.chest.add(chestFace);
-
-    const back = this.mesh(createBackShell(), this.mats.white);
-    back.name = "backShell";
-    back.position.set(0, 0.012, -0.008);
-    this.chest.add(back);
-
-    const spine = this.panel(0.045, 0.25, 0.025, this.mats.joint, 0.014);
-    spine.position.set(0, 0.12, -0.09);
-    this.chest.add(spine);
-    for (const side of [-1, 1]) {
-      const scapula = this.panel(0.09, 0.17, 0.018, this.mats.white, 0.025);
-      scapula.position.set(side * 0.075, 0.13, -0.107);
-      scapula.rotation.z = side * -0.12;
-      this.chest.add(scapula);
-      const flank = this.panel(0.024, 0.14, 0.035, this.mats.joint, 0.01);
-      flank.position.set(side * 0.147, 0.055, -0.035);
-      flank.rotation.z = side * 0.18;
-      this.chest.add(flank);
-    }
 
     const waist = this.mesh(createMidriff(), this.mats.matte);
     waist.position.y = -0.018;
@@ -271,11 +239,11 @@ export class Optimus {
 
   private arm(side: number): THREE.Group {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.26, 0.24, 0.01);
+    shoulder.position.set(side * 0.248, 0.238, 0.008);
     this.chest.add(shoulder);
 
     const cap = this.mesh(createShoulderCap(side), this.mats.white);
-    cap.position.set(side * 0.012, 0.006, 0.004);
+    cap.position.set(side * 0.008, 0.004, 0.006);
     shoulder.add(cap);
 
     const socket = this.mesh(new THREE.SphereGeometry(0.016, 10, 8), this.mats.joint);
@@ -295,12 +263,9 @@ export class Optimus {
     upper.add(housing);
 
     const bicep = this.panel(0.054, 0.14, 0.02, this.mats.white, 0.012);
-    bicep.position.set(0, -0.118, 0.036);
+    bicep.position.set(0, -0.118, 0.032);
     upper.add(bicep);
 
-    const tricep = this.panel(0.045, 0.13, 0.018, this.mats.white, 0.012);
-    tricep.position.set(0, -0.12, -0.034);
-    upper.add(tricep);
     for (const x of [-0.022, 0.022]) {
       const rod = this.mesh(new THREE.CylinderGeometry(0.006, 0.007, 0.13, 10), this.mats.metal);
       rod.position.set(x, -0.122, -0.047);
@@ -394,13 +359,10 @@ export class Optimus {
     thigh.add(tHousing);
 
     const thighInset = this.panel(0.034, 0.205, 0.018, this.mats.joint, 0.012);
-    thighInset.position.set(side * -0.05, -0.15, 0.067);
+    thighInset.position.set(side * -0.048, -0.15, 0.058);
     thighInset.scale.set(0.72, 0.78, 1);
     thighInset.rotation.z = side * 0.04;
     thigh.add(thighInset);
-    const hamstring = this.panel(0.065, 0.21, 0.026, this.mats.white, 0.022);
-    hamstring.position.set(side * 0.012, -0.17, -0.054);
-    thigh.add(hamstring);
 
     const knee = new THREE.Group();
     knee.position.y = -0.388;
@@ -431,15 +393,12 @@ export class Optimus {
     sHousing.position.set(0, -0.008, 0.01);
     shin.add(sHousing);
 
-    const calf = this.mesh(createCalfShell(0.31), this.mats.white);
-    calf.position.set(0, -0.035, -0.03);
-    shin.add(calf);
     for (const rodX of [-0.032, 0.032]) {
       const achilles = this.mesh(
         new THREE.CylinderGeometry(0.006, 0.008, 0.25, 10),
         this.mats.metal,
       );
-      achilles.position.set(rodX, -0.22, -0.073);
+      achilles.position.set(rodX, -0.22, -0.052);
       achilles.rotation.x = -0.08;
       shin.add(achilles);
     }
