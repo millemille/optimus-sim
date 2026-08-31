@@ -251,18 +251,18 @@ export class Optimus {
   private hand(side: number): THREE.Group {
     const g = new THREE.Group();
 
-    const palm = this.panel(0.05, 0.036, 0.02, this.mats.matte, 0.01);
-    palm.position.set(0, -0.03, -0.002);
+    const palm = this.panel(0.054, 0.04, 0.022, this.mats.matte, 0.01);
+    palm.position.set(0, -0.032, -0.002);
     g.add(palm);
-    const dorsal = this.panel(0.056, 0.032, 0.013, this.mats.white, 0.008);
-    dorsal.position.set(0, -0.026, 0.017);
+    const dorsal = this.panel(0.062, 0.038, 0.016, this.mats.white, 0.009);
+    dorsal.position.set(0, -0.028, 0.018);
     g.add(dorsal);
 
-    const xs = [-0.026, -0.009, 0.008, 0.024];
-    const prox = [0.026, 0.03, 0.028, 0.024];
-    const dist = [0.022, 0.026, 0.024, 0.02];
-    const widths = [0.011, 0.012, 0.0116, 0.0104];
-    const fans = [-0.08, -0.02, 0.03, 0.1];
+    const xs = [-0.028, -0.01, 0.008, 0.026];
+    const prox = [0.03, 0.034, 0.032, 0.028];
+    const dist = [0.024, 0.028, 0.026, 0.022];
+    const widths = [0.0125, 0.0135, 0.013, 0.0118];
+    const fans = [-0.07, -0.018, 0.028, 0.09];
     for (let i = 0; i < 4; i += 1) {
       const knuckle = this.mesh(new THREE.SphereGeometry(0.0062, 8, 6), this.mats.joint);
       knuckle.position.set(xs[i], -0.048, 0.008);

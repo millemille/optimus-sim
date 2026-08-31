@@ -110,72 +110,53 @@ function loftArmor(
 }
 
 /**
- * One pec-to-deltoid wrap. Chest volume stays on the pecs; the
- * same mesh is pulled into a round deltoid lobe on each side so
- * there is no gap and no separate pauldron ball. Outer reach
- * stays near 0.40 (the ~295px band). Hem is a pec cut, not a bar.
+ * One pec-to-arm wrap. Width grows smoothly from the collar
+ * through the pecs and into the deltoid (half ~0.40) so the
+ * front is one white mass, not a vest plus two balls. A light
+ * rim dump puts that outer mass onto the arm. Hem is a pec cut.
  */
 export function createPecShell(): THREE.BufferGeometry {
   const rings: ArmorRing[] = [
-    { y: 0.29, rx: 0.104, rzFront: 0.05, rzBack: 0.028, power: 0.48 },
-    { y: 0.258, rx: 0.16, rzFront: 0.07, rzBack: 0.03, power: 0.46 },
-    { y: 0.228, rx: 0.252, rzFront: 0.086, rzBack: 0.03, power: 0.42 },
-    { y: 0.2, rx: 0.286, rzFront: 0.096, rzBack: 0.032, power: 0.4 },
-    { y: 0.168, rx: 0.254, rzFront: 0.112, rzBack: 0.03, power: 0.44, ridge: 0.01 },
-    { y: 0.13, rx: 0.234, rzFront: 0.116, rzBack: 0.028, power: 0.46, ridge: 0.012 },
-    { y: 0.088, rx: 0.212, rzFront: 0.082, rzBack: 0.026, power: 0.48 },
-    { y: 0.046, rx: 0.188, rzFront: 0.054, rzBack: 0.024, power: 0.5 },
+    { y: 0.292, rx: 0.104, rzFront: 0.05, rzBack: 0.028, power: 0.5 },
+    { y: 0.262, rx: 0.168, rzFront: 0.068, rzBack: 0.03, power: 0.48 },
+    { y: 0.236, rx: 0.248, rzFront: 0.082, rzBack: 0.03, power: 0.46 },
+    { y: 0.212, rx: 0.332, rzFront: 0.09, rzBack: 0.03, power: 0.44 },
+    { y: 0.188, rx: 0.396, rzFront: 0.086, rzBack: 0.028, power: 0.42 },
+    { y: 0.158, rx: 0.348, rzFront: 0.108, rzBack: 0.028, power: 0.44, ridge: 0.008 },
+    { y: 0.122, rx: 0.268, rzFront: 0.118, rzBack: 0.026, power: 0.46, ridge: 0.01 },
+    { y: 0.082, rx: 0.222, rzFront: 0.086, rzBack: 0.024, power: 0.48 },
+    { y: 0.044, rx: 0.192, rzFront: 0.056, rzBack: 0.022, power: 0.5 },
     { y: 0.008, rx: 0.166, rzFront: 0.04, rzBack: 0.02, power: 0.5, lip: 0.9 },
   ];
   const geo = loftArmor(rings, 48, "none");
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i += 1) {
-    let x = pos.getX(i);
+    const x = pos.getX(i);
     let y = pos.getY(i);
     let z = pos.getZ(i);
 
-    if (y > 0.226) {
-      const u = Math.exp(-((x / 0.09) ** 2)) * ((y - 0.226) / 0.064);
+    if (y > 0.228) {
+      const u = Math.exp(-((x / 0.09) ** 2)) * ((y - 0.228) / 0.064);
       y -= u * 0.04;
     }
-
-    const side = x >= 0 ? 1 : -1;
-    const cy = 0.198;
-    const wx = smoothstep(0.148, 0.26, Math.abs(x));
-    const wy = Math.exp(-(((y - 0.198) / 0.112) ** 2));
-    const wz = z > -0.008 ? 1 : 0.16;
-    const blend = wx * wy * wz;
-    if (blend > 0.02) {
-      const pole = THREE.MathUtils.clamp((y - cy) / 0.082, -1, 1);
-      const rxDelt = 0.1 * Math.sqrt(Math.max(0.12, 1 - pole * pole));
-      const tx = side * (0.304 + rxDelt);
-      const ty = cy + pole * 0.058 - blend * 0.03;
-      const tz = z >= 0 ? 0.012 + Math.max(0, z) * 0.45 + blend * 0.02 : z * 0.4;
-      x += (tx - x) * blend;
-      y += (ty - y) * blend;
-      z += (tz - z) * blend;
+    if (Math.abs(x) > 0.3 && y > 0.14) {
+      const t = Math.min(1, (Math.abs(x) - 0.3) / 0.1);
+      y -= t * t * 0.028;
     }
-
-    if (y < 0.082) {
-      const t = Math.min(1, Math.abs(x) / 0.17);
-      y += t * t * 0.05;
+    if (y < 0.055) {
+      const t = Math.min(1, Math.abs(x) / 0.18);
+      y += t * t * 0.046;
     }
     if (z > 0) {
-      const pec = Math.exp(-(x * x) / 0.03) * Math.exp(-((y - 0.138) ** 2) / 0.011);
-      z += pec * 0.016;
+      const pec = Math.exp(-(x * x) / 0.032) * Math.exp(-((y - 0.132) ** 2) / 0.012);
+      z += pec * 0.015;
     }
-    pos.setX(i, x);
     pos.setY(i, y);
     pos.setZ(i, z);
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
   return geo;
-}
-
-function smoothstep(edge0: number, edge1: number, x: number): number {
-  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
 }
 
 /** Black ribcage the pec sits on. Fitted, not a hollow cage. */
